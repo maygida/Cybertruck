@@ -1,0 +1,39 @@
+{
+  "name": "CyberAcad — أكاديمية الأمن السيبراني",
+  "short_name": "CyberAcad",
+  "description": "تعلم الأمن السيبراني من الصفر إلى الاحتراف",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#010306",
+  "theme_color": "#020408",
+  "orientation": "any",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["education", "security", "technology"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='30' fill='%23010306'/><rect x='10' y='10' width='172' height='172' rx='20' fill='none' stroke='%2300ff41' stroke-width='2' opacity='0.4'/><text x='96' y='115' font-size='80' text-anchor='middle' fill='%2300ff41' font-family='monospace'>⚔</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='60' fill='%23010306'/><rect x='20' y='20' width='472' height='472' rx='40' fill='none' stroke='%2300ff41' stroke-width='4' opacity='0.4'/><text x='256' y='300' font-size='220' text-anchor='middle' fill='%2300ff41' font-family='monospace'>⚔</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "المنهج",
+      "url": "./index.html",
+      "description": "دروس الأمن السيبراني"
+    },
+    {
+      "name": "المختبرات",
+      "url": "./index.html",
+      "description": "مختبرات تفاعلية"
+    }
+  ]
+}
